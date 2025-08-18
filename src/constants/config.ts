@@ -1,8 +1,12 @@
 export const API_CONFIG = {
-  DEV_URL: 'http://127.0.0.1:8000',
+  DEV_URL: 'https://admin.innerlight.community/public',
   PROD_URL: 'https://admin.innerlight.community/public',
+  SUBDOMAIN: 'innerlight', // Default subdomain, can be made configurable
   get BASE_URL() {
     return __DEV__ ? this.DEV_URL : this.PROD_URL;
+  },
+  get API_BASE_URL() {
+    return `${this.BASE_URL}/api/v1/${this.SUBDOMAIN}`;
   }
 };
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TouchableOpacity, View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { FormInputProps } from '../../types';
+import { theme } from '../../constants/theme';
 
 const FormInput: React.FC<FormInputProps & TextInputProps> = ({ 
   label, 
@@ -41,7 +42,7 @@ const FormInput: React.FC<FormInputProps & TextInputProps> = ({
           secureTextEntry={secureTextEntry && !showPassword}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={theme.colors.text.muted}
           {...props}
         />
 
@@ -51,9 +52,9 @@ const FormInput: React.FC<FormInputProps & TextInputProps> = ({
             onPress={togglePasswordVisibility}
           >
             {showPassword ? (
-              <EyeOff size={20} color="#6b7280" />
+              <EyeOff size={20} color={theme.colors.text.secondary} />
             ) : (
-              <Eye size={20} color="#6b7280" />
+              <Eye size={20} color={theme.colors.text.secondary} />
             )}
           </TouchableOpacity>
         )}
@@ -73,39 +74,40 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: 8,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.sm,
   },
   inputContainer: {
     position: 'relative',
   },
   input: {
     height: 48,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    fontSize: theme.typography.sizes.md,
     borderWidth: 1,
-    borderRadius: 8,
-    backgroundColor: '#ffffff',
-    color: '#111827',
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.white,
+    color: theme.colors.text.primary,
+    ...theme.shadows.light,
   },
   inputNormal: {
-    borderColor: '#d1d5db',
+    borderColor: theme.colors.border.light,
   },
   inputError: {
-    borderColor: '#f87171',
+    borderColor: theme.colors.error,
   },
   eyeButton: {
     position: 'absolute',
-    right: 12,
+    right: theme.spacing.md,
     top: 14,
   },
   errorText: {
-    fontSize: 14,
-    color: '#ef4444',
-    marginTop: 4,
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.error,
+    marginTop: theme.spacing.xs,
   },
 });
 

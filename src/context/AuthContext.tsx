@@ -37,7 +37,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Verify token is still valid
         try {
-          await ApiService.getProfile();
+          const response = await ApiService.getMe();
+          if (response.success && response.data) {
+            setUser(response.data);
+            await AsyncStorage.setItem('userData', JSON.stringify(response.data));
+          }
         } catch (error) {
           // Token expired or invalid, clear auth state
           await clearAuthState();
@@ -66,10 +70,10 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       const response = await ApiService.login(email, password);
 
-      if (response.token && response.user) {
-        await AsyncStorage.setItem('userToken', response.token);
-        await AsyncStorage.setItem('userData', JSON.stringify(response.user));
-        setUser(response.user);
+      if (response.success && response.data?.token && response.data?.user) {
+        await AsyncStorage.setItem('userToken', response.data.token);
+        await AsyncStorage.setItem('userData', JSON.stringify(response.data.user));
+        setUser(response.data.user);
         return { success: true };
       } else {
         return { success: false, message: response.message || 'Login failed' };
@@ -110,7 +114,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await ApiService.forgotPassword(email);
       
       return { 
-        success: true, 
+        success: response.success, 
         message: response.message || 'Reset email sent successfully' 
       };
     } catch (error) {
@@ -118,6 +122,37 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { 
         success: false, 
         message: error.message || 'Failed to send reset email' 
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    user_group_id?: number;
+    tier_id?: number;
+  }): Promise<AuthResponse> => {
+    try {
+      setLoading(true);
+      const response = await ApiService.register(data);
+
+      if (response.success && response.data?.token && response.data?.user) {
+        await AsyncStorage.setItem('userToken', response.data.token);
+        await AsyncStorage.setItem('userData', JSON.stringify(response.data.user));
+        setUser(response.data.user);
+        return { success: true };
+      } else {
+        return { success: false, message: response.message || 'Registration failed' };
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { 
+        success: false, 
+        message: error.message || 'Network error occurred' 
       };
     } finally {
       setLoading(false);
@@ -134,6 +169,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     forgotPassword,
+    register,
     isAuthenticated: !!user,
   };
 

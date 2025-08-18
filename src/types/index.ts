@@ -60,12 +60,21 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<AuthResponse>;
+  register: (data: {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    user_group_id?: number;
+    tier_id?: number;
+  }) => Promise<AuthResponse>;
   loading: boolean;
 }
 
 // Navigation Types
 export type RootStackParamList = {
   Login: undefined;
+  Register: undefined;
   ForgotPassword: undefined;
   MainTabs: undefined;
 };

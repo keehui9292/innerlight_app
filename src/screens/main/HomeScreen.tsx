@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, Clock, User, Bell } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { TabScreenProps } from '../../types';
+import { theme } from '../../constants/theme';
 
 interface QuickAction {
   title: string;
@@ -23,32 +24,32 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
       description: 'Schedule a new appointment',
       icon: Calendar,
       onPress: () => navigation.navigate('Appointments'),
-      color: '#6366f1',
-      bgColor: '#eef2ff'
+      color: theme.colors.primary,
+      bgColor: '#f5f3f1'
     },
     {
       title: 'View Schedule',
       description: 'See your upcoming appointments',
       icon: Clock,
       onPress: () => navigation.navigate('Appointments'),
-      color: '#10b981',
-      bgColor: '#d1fae5'
+      color: theme.colors.primary,
+      bgColor: '#f5f3f1'
     },
     {
       title: 'Profile Settings',
       description: 'Manage your account',
       icon: User,
       onPress: () => navigation.navigate('Profile'),
-      color: '#f59e0b',
-      bgColor: '#fef3c7'
+      color: theme.colors.primary,
+      bgColor: '#f5f3f1'
     },
     {
       title: 'Notifications',
       description: 'View your notifications',
       icon: Bell,
       onPress: () => console.log('Notifications'),
-      color: '#8b5cf6',
-      bgColor: '#f3e8ff'
+      color: theme.colors.primary,
+      bgColor: '#f5f3f1'
     }
   ];
 
@@ -130,7 +131,7 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
             
             <View style={styles.activityCard}>
               <View style={styles.emptyState}>
-                <Calendar size={32} color="#d1d5db" />
+                <Calendar size={32} color={theme.colors.text.light} />
                 <Text style={styles.emptyTitle}>
                   No recent activity
                 </Text>
@@ -149,71 +150,73 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.background,
   },
   scrollView: {
     flex: 1,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.lg,
   },
   greeting: {
-    fontSize: 18,
-    color: '#6b7280',
-    marginBottom: 4,
+    fontSize: theme.typography.sizes.lg,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.xs,
   },
   welcomeTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 8,
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.secondary,
   },
   welcomeCard: {
-    backgroundColor: '#eef2ff',
-    borderRadius: 12,
-    padding: 24,
-    marginBottom: 24,
+    backgroundColor: '#f9f8f7',
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
     borderWidth: 1,
-    borderColor: '#c7d2fe',
+    borderColor: theme.colors.border.light,
+    ...theme.shadows.light,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#312e81',
-    marginBottom: 8,
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.sm,
   },
   cardText: {
-    fontSize: 14,
-    color: '#4338ca',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
     lineHeight: 20,
   },
   actionsSection: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.lg,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 16,
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.md,
   },
   actionsList: {
-    gap: 12,
+    gap: theme.spacing.md,
   },
   actionCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 16,
+    borderColor: theme.colors.border.light,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    ...theme.shadows.light,
   },
   actionContent: {
     flexDirection: 'row',
@@ -222,48 +225,49 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 48,
     height: 48,
-    borderRadius: 12,
+    borderRadius: theme.borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: theme.spacing.md,
   },
   actionText: {
     flex: 1,
   },
   actionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
   },
   actionDescription: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
   },
   activitySection: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.lg,
   },
   activityCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 16,
+    borderColor: theme.colors.border.light,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    ...theme.shadows.light,
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: theme.spacing.lg,
   },
   emptyTitle: {
-    fontSize: 16,
-    color: '#9ca3af',
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.muted,
     textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
   emptySubtitle: {
-    fontSize: 14,
-    color: '#d1d5db',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.light,
     textAlign: 'center',
   },
 });

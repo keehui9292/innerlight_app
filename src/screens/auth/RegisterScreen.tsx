@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Platform, Alert, StyleSheet, View, Text, TouchableOpacity, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import FormInput from '../../components/common/FormInput';
 import CustomButton from '../../components/common/Button';
@@ -8,22 +9,28 @@ import { StackScreenProps } from '../../types';
 import { theme } from '../../constants/theme';
 
 interface FormData {
+  name: string;
   email: string;
   password: string;
+  password_confirmation: string;
 }
 
 interface FormErrors {
+  name?: string;
   email?: string;
   password?: string;
+  password_confirmation?: string;
 }
 
-const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
+const RegisterScreen: React.FC<StackScreenProps<'Register'>> = ({ navigation }) => {
   const [formData, setFormData] = useState<FormData>({
+    name: '',
     email: '',
-    password: ''
+    password: '',
+    password_confirmation: ''
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const { login, loading } = useAuth();
+  const { register, loading } = useAuth();
 
   const handleInputChange = (field: keyof FormData, value: string): void => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -36,6 +43,10 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -44,26 +55,33 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
     
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+    
+    if (!formData.password_confirmation.trim()) {
+      newErrors.password_confirmation = 'Password confirmation is required';
+    } else if (formData.password !== formData.password_confirmation) {
+      newErrors.password_confirmation = 'Passwords do not match';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = async (): Promise<void> => {
+  const handleRegister = async (): Promise<void> => {
     if (!validateForm()) return;
 
-    const result = await login(formData.email, formData.password);
+    const result = await register(formData);
     
     if (!result.success) {
-      Alert.alert('Login Failed', result.message);
+      Alert.alert('Registration Failed', result.message);
     }
+    // If successful, the AuthContext will automatically navigate to the main app
   };
 
-  const handleForgotPassword = (): void => {
-    navigation.navigate('ForgotPassword');
+  const handleBackToLogin = (): void => {
+    navigation.navigate('Login');
   };
 
   return (
@@ -76,16 +94,36 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
           <View style={styles.content}>
             {/* Header */}
             <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <ArrowLeft size={24} color={theme.colors.text.primary} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>
+                Create Account
+              </Text>
+            </View>
+
+            {/* Welcome Section */}
+            <View style={styles.welcomeSection}>
               <Text style={styles.title}>
-                Innerlight Community
+                Join Innerlight Community
               </Text>
               <Text style={styles.subtitle}>
-                Welcome back! Please sign in to your account
+                Create your account to access our wellness community
               </Text>
             </View>
 
             {/* Form */}
             <View style={styles.form}>
+              <FormInput
+                label="Full Name"
+                placeholder="Enter your full name"
+                value={formData.name}
+                onChangeText={(value) => handleInputChange('name', value)}
+                error={errors.name}
+                autoCapitalize="words"
+                required
+              />
+
               <FormInput
                 label="Email Address"
                 placeholder="Enter your email"
@@ -107,17 +145,19 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
                 required
               />
 
-              <View style={styles.forgotContainer}>
-                <TouchableOpacity onPress={handleForgotPassword}>
-                  <Text style={styles.forgotText}>
-                    Forgot Password?
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <FormInput
+                label="Confirm Password"
+                placeholder="Confirm your password"
+                value={formData.password_confirmation}
+                onChangeText={(value) => handleInputChange('password_confirmation', value)}
+                error={errors.password_confirmation}
+                secureTextEntry
+                required
+              />
 
               <CustomButton
-                title="Sign In"
-                onPress={handleLogin}
+                title="Create Account"
+                onPress={handleRegister}
                 loading={loading}
                 size="lg"
                 colorScheme="primary"
@@ -127,19 +167,13 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
             {/* Footer */}
             <View style={styles.footer}>
               <Text style={styles.footerText}>
-                Don't have an account? 
+                Already have an account? 
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <TouchableOpacity onPress={handleBackToLogin}>
                 <Text style={styles.linkText}>
-                  Sign Up
+                  Sign In
                 </Text>
               </TouchableOpacity>
-            </View>
-
-            <View style={styles.memberFooter}>
-              <Text style={styles.memberText}>
-                Members only access
-              </Text>
             </View>
           </View>
         </ScrollView>
@@ -162,11 +196,23 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xxl + theme.spacing.md,
+    paddingTop: theme.spacing.xl,
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.xxl + theme.spacing.sm,
+    marginBottom: theme.spacing.xl,
+  },
+  backButton: {
+    marginRight: theme.spacing.md,
+  },
+  headerTitle: {
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.text.primary,
+  },
+  welcomeSection: {
+    marginBottom: theme.spacing.xl,
   },
   title: {
     fontSize: theme.typography.sizes.xxl,
@@ -184,15 +230,6 @@ const styles = StyleSheet.create({
   form: {
     marginBottom: theme.spacing.xl,
   },
-  forgotContainer: {
-    alignItems: 'flex-end',
-    marginBottom: theme.spacing.md,
-  },
-  forgotText: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.primary,
-    fontWeight: theme.typography.weights.medium,
-  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -209,15 +246,6 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weights.medium,
     marginLeft: theme.spacing.xs,
   },
-  memberFooter: {
-    alignItems: 'center',
-    marginTop: theme.spacing.md,
-  },
-  memberText: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text.muted,
-    textAlign: 'center',
-  },
 });
 
-export default LoginScreen;
+export default RegisterScreen;

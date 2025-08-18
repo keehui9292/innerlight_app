@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, TouchableOpacityProps } from 'react-native';
 import { CustomButtonProps } from '../../types';
+import { theme } from '../../constants/theme';
 
 const CustomButton: React.FC<CustomButtonProps & TouchableOpacityProps> = ({ 
   title, 
@@ -28,6 +29,13 @@ const CustomButton: React.FC<CustomButtonProps & TouchableOpacityProps> = ({
     ].filter(Boolean);
   };
 
+  const getTextStyle = () => {
+    return [
+      styles.buttonText,
+      colorScheme === 'secondary' && styles.secondaryText,
+    ].filter(Boolean);
+  };
+
   return (
     <TouchableOpacity
       style={getButtonStyle()}
@@ -35,8 +43,8 @@ const CustomButton: React.FC<CustomButtonProps & TouchableOpacityProps> = ({
       activeOpacity={0.8}
       {...props}
     >
-      {loading && <ActivityIndicator color="#ffffff" size="small" style={styles.spinner} />}
-      <Text style={styles.buttonText}>
+      {loading && <ActivityIndicator color={colorScheme === 'secondary' ? theme.colors.primary : theme.colors.white} size="small" style={styles.spinner} />}
+      <Text style={getTextStyle()}>
         {children || title}
       </Text>
     </TouchableOpacity>
@@ -48,45 +56,51 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.borderRadius.md,
     minHeight: 48,
+    ...theme.shadows.light,
   },
   fullWidth: {
     width: '100%',
   },
   large: {
-    paddingVertical: 16,
+    paddingVertical: theme.spacing.lg,
     minHeight: 56,
   },
   primary: {
-    backgroundColor: '#6366f1',
+    backgroundColor: theme.colors.primary,
   },
   secondary: {
-    backgroundColor: '#6b7280',
+    backgroundColor: theme.colors.white,
+    borderWidth: 1,
+    borderColor: theme.colors.border.primary,
   },
   success: {
-    backgroundColor: '#16a34a',
+    backgroundColor: theme.colors.success,
   },
   warning: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: theme.colors.warning,
   },
   danger: {
-    backgroundColor: '#ef4444',
+    backgroundColor: theme.colors.error,
   },
   disabled: {
-    backgroundColor: '#d1d5db',
+    backgroundColor: theme.colors.border.light,
     opacity: 0.6,
   },
   buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: theme.colors.white,
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.semibold,
     textAlign: 'center',
   },
   spinner: {
-    marginRight: 8,
+    marginRight: theme.spacing.sm,
+  },
+  secondaryText: {
+    color: theme.colors.primary,
   },
 });
 

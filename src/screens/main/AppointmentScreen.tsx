@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Platform, Alert, RefreshControl, View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Plus, Calendar, Clock, MapPin, User } from 'lucide-react-native';
-// import ApiService from '../../services/apiService'; // Will be used when API is connected
+import ApiService from '../../services/apiService';
 import CustomButton from '../../components/common/Button';
 import { Appointment, TabScreenProps } from '../../types';
+import { theme } from '../../constants/theme';
 
 interface StatusColors {
   bg: string;
@@ -24,7 +25,39 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
   const fetchAppointments = async (): Promise<void> => {
     try {
       setLoading(true);
-      // Simulate API call with mock data for demo
+      const response = await ApiService.getAppointments();
+      
+      if (response.success && response.data) {
+        setAppointments(response.data);
+      } else {
+        // Fallback to mock data for demo if API is not available
+        const mockAppointments: Appointment[] = [
+          {
+            id: '1',
+            title: 'Wellness Consultation',
+            description: 'Initial wellness assessment and planning session',
+            date: new Date().toISOString().split('T')[0],
+            time: '10:00',
+            status: 'confirmed',
+            provider: 'Dr. Sarah Johnson',
+            location: 'Innerlight Center - Room 101'
+          },
+          {
+            id: '2',
+            title: 'Follow-up Session',
+            description: 'Progress review and adjustment session',
+            date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            time: '14:30',
+            status: 'pending',
+            provider: 'Dr. Sarah Johnson',
+            location: 'Innerlight Center - Room 203'
+          }
+        ];
+        setAppointments(mockAppointments);
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      // Fallback to mock data for demo
       const mockAppointments: Appointment[] = [
         {
           id: '1',
@@ -35,27 +68,9 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
           status: 'confirmed',
           provider: 'Dr. Sarah Johnson',
           location: 'Innerlight Center - Room 101'
-        },
-        {
-          id: '2',
-          title: 'Follow-up Session',
-          description: 'Progress review and adjustment session',
-          date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          time: '14:30',
-          status: 'pending',
-          provider: 'Dr. Sarah Johnson',
-          location: 'Innerlight Center - Room 203'
         }
       ];
-      
       setAppointments(mockAppointments);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      if (Platform.OS === 'web') {
-        Alert.alert('Error', 'Failed to load appointments');
-      } else {
-        Alert.alert('Error', 'Failed to load appointments');
-      }
     } finally {
       setLoading(false);
     }
@@ -119,7 +134,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6366f1" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>
             Loading appointments...
           </Text>
@@ -151,7 +166,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
           {appointments.length === 0 ? (
             // Empty state
             <View style={styles.emptyContainer}>
-              <Calendar size={64} color="#d1d5db" />
+              <Calendar size={64} color={theme.colors.text.light} />
               <Text style={styles.emptyTitle}>
                 No appointments scheduled
               </Text>
@@ -203,12 +218,12 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
                       {/* Details */}
                       <View style={styles.detailsContainer}>
                         <View style={styles.detailRow}>
-                          <Calendar size={16} color="#6b7280" />
+                          <Calendar size={16} color={theme.colors.text.secondary} />
                           <Text style={styles.detailText}>
                             {formatDate(appointment.date)}
                           </Text>
                           <View style={styles.detailSeparator} />
-                          <Clock size={16} color="#6b7280" />
+                          <Clock size={16} color={theme.colors.text.secondary} />
                           <Text style={styles.detailText}>
                             {formatTime(appointment.time)}
                           </Text>
@@ -216,7 +231,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
                         
                         {appointment.provider && (
                           <View style={styles.detailRow}>
-                            <User size={16} color="#6b7280" />
+                            <User size={16} color={theme.colors.text.secondary} />
                             <Text style={styles.detailText}>
                               {appointment.provider}
                             </Text>
@@ -225,7 +240,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
 
                         {appointment.location && (
                           <View style={styles.detailRow}>
-                            <MapPin size={16} color="#6b7280" />
+                            <MapPin size={16} color={theme.colors.text.secondary} />
                             <Text style={styles.detailText}>
                               {appointment.location}
                             </Text>
@@ -247,7 +262,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
         onPress={handleBookAppointment}
         activeOpacity={0.8}
       >
-        <Plus size={24} color="#ffffff" />
+        <Plus size={24} color={theme.colors.white} />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -256,27 +271,27 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.background,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: theme.spacing.md,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.primary,
   },
   appointmentCount: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
   },
   scrollView: {
     flex: 1,
@@ -287,46 +302,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6b7280',
+    marginTop: theme.spacing.md,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.secondary,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 64,
+    paddingVertical: theme.spacing.xxl + theme.spacing.md,
   },
   emptyTitle: {
-    fontSize: 18,
-    color: '#9ca3af',
+    fontSize: theme.typography.sizes.lg,
+    color: theme.colors.text.muted,
     textAlign: 'center',
-    marginTop: 16,
-    fontWeight: '500',
+    marginTop: theme.spacing.md,
+    fontWeight: theme.typography.weights.medium,
   },
   emptySubtitle: {
-    fontSize: 14,
-    color: '#d1d5db',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.light,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: theme.spacing.sm,
     lineHeight: 20,
   },
   emptyButtonContainer: {
-    marginTop: 24,
+    marginTop: theme.spacing.lg,
   },
   appointmentsList: {
     paddingBottom: 80,
-    gap: 16,
+    gap: theme.spacing.md,
   },
   appointmentCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 20,
+    borderColor: theme.colors.border.light,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    ...theme.shadows.light,
   },
   cardContent: {
-    gap: 16,
+    gap: theme.spacing.md,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -335,21 +351,21 @@ const styles = StyleSheet.create({
   },
   appointmentInfo: {
     flex: 1,
-    marginRight: 12,
+    marginRight: theme.spacing.md,
   },
   appointmentTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.text.primary,
   },
   appointmentDescription: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 4,
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
     borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -358,51 +374,45 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 8,
+    marginRight: theme.spacing.sm,
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: theme.typography.sizes.xs,
+    fontWeight: theme.typography.weights.medium,
     textTransform: 'capitalize',
   },
   detailsContainer: {
-    gap: 8,
+    gap: theme.spacing.sm,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: theme.spacing.sm,
   },
   detailText: {
-    fontSize: 14,
-    color: '#6b7280',
-    fontWeight: '500',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weights.medium,
   },
   detailSeparator: {
     width: 4,
     height: 4,
-    backgroundColor: '#9ca3af',
+    backgroundColor: theme.colors.text.muted,
     borderRadius: 2,
-    marginHorizontal: 8,
+    marginHorizontal: theme.spacing.sm,
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
-    right: 24,
+    bottom: theme.spacing.lg,
+    right: theme.spacing.lg,
     width: 56,
     height: 56,
-    backgroundColor: '#6366f1',
+    backgroundColor: theme.colors.primary,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    ...theme.shadows.medium,
   },
 });
 

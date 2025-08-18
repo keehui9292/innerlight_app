@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import FormInput from '../../components/common/FormInput';
 import CustomButton from '../../components/common/Button';
 import { StackScreenProps } from '../../types';
+import { theme } from '../../constants/theme';
 
 interface FormErrors {
   email?: string;
@@ -65,7 +66,7 @@ const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ na
             {/* Header */}
             <View style={styles.header}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                <ArrowLeft size={24} color="#374151" />
+                <ArrowLeft size={24} color={theme.colors.text.primary} />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>
                 Reset Password
@@ -120,7 +121,7 @@ const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ na
               // Success state
               <View style={styles.successContainer}>
                 <View style={styles.iconContainer}>
-                  <CheckCircle size={40} color="#10b981" />
+                  <CheckCircle size={40} color={theme.colors.success} />
                 </View>
                 
                 <View style={styles.successContent}>
@@ -165,7 +166,7 @@ const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ na
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.background,
   },
   keyboardContainer: {
     flex: 1,
@@ -175,41 +176,41 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: theme.spacing.xl,
   },
   backButton: {
-    marginRight: 16,
+    marginRight: theme.spacing.md,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.text.primary,
   },
   formContainer: {
     flex: 1,
   },
   titleContainer: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.lg,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 8,
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.secondary,
     lineHeight: 24,
   },
   form: {
-    marginBottom: 32,
+    marginBottom: theme.spacing.xl,
   },
   footer: {
     flexDirection: 'row',
@@ -217,14 +218,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
   },
   linkText: {
-    fontSize: 14,
-    color: '#6366f1',
-    fontWeight: '500',
-    marginLeft: 4,
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.primary,
+    fontWeight: theme.typography.weights.medium,
+    marginLeft: theme.spacing.xs,
   },
   successContainer: {
     flex: 1,
@@ -233,43 +234,43 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 80,
     height: 80,
-    backgroundColor: '#dcfce7',
+    backgroundColor: '#f0f9f5',
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: theme.spacing.md,
   },
   successContent: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: theme.spacing.xl,
   },
   successTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.primary,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   successText: {
-    fontSize: 16,
-    color: '#6b7280',
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
   },
   emailText: {
-    fontWeight: '500',
+    fontWeight: theme.typography.weights.medium,
   },
   helpText: {
-    fontSize: 14,
-    color: '#9ca3af',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.muted,
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: theme.spacing.md,
   },
   buttonContainer: {
     width: '100%',
   },
   buttonSpacing: {
-    height: 12,
+    height: theme.spacing.md,
   },
 });
 
