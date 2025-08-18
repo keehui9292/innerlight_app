@@ -1,5 +1,5 @@
-import React, { Fragment } from 'react';
-import { Platform, Alert, View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { Fragment, useState, useEffect, useCallback } from 'react';
+import { Platform, Alert, View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   User, 
@@ -14,25 +14,90 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { TabScreenProps } from '../../types';
+import { theme } from '../../constants/theme';
+import ApiService from '../../services/apiService';
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  email_verified_at: string;
+  role: string;
+  referral_code: string;
+  created_at: string;
+  metahealers_status: string;
+  john_course_status: string;
+  naha_intro_status: string;
+  website: {
+    name: string;
+    domain: string;
+  };
+}
 
 const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth() as any;
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const response = await ApiService.getMe() as any;
+      
+      if (response.success && response.data) {
+        // Handle nested user data structure
+        const userData = response.data.user || response.data;
+        setProfileData(userData);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      Alert.alert('Error', 'Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = useCallback(async (): Promise<void> => {
+    setRefreshing(true);
+    await fetchProfile();
+    setRefreshing(false);
+  }, []);
+
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long'
+      });
+    } catch {
+      return 'Unknown';
+    }
+  };
+
+  const currentUser = profileData || user;
+  
   const userInfo = [
     {
       label: 'Email',
-      value: user?.email || 'member@innerlight.community',
+      value: currentUser?.email || 'Not provided',
       icon: Mail
     },
     {
       label: 'Phone',
-      value: user?.phone || '+1 (555) 123-4567',
+      value: currentUser?.phone || 'Not provided',
       icon: Phone
     },
     {
-      label: 'Location',
-      value: user?.location || 'San Francisco, CA',
-      icon: MapPin
+      label: 'Role',
+      value: currentUser?.role?.charAt(0).toUpperCase() + currentUser?.role?.slice(1) || 'User',
+      icon: User
     }
   ];
 
@@ -75,14 +140,37 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
     }
   };
 
-  const getInitials = (name) => {
-    if (!name) return 'M';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const getInitials = (name: any) => {
+    if (!name) return 'U';
+    return name.split(' ').map((n: any) => n[0]).join('').toUpperCase();
   };
+
+  const getMemberSince = (): string => {
+    const createdAt = currentUser?.created_at;
+    if (!createdAt) return new Date().getFullYear().toString();
+    return formatDate(createdAt);
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={styles.content}>
           {/* Header */}
           <Text style={styles.title}>Profile</Text>
@@ -92,20 +180,22 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
             <View style={styles.profileHeader}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
-                  {getInitials(user?.name)}
+                  {getInitials(currentUser?.name)}
                 </Text>
               </View>
               
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>
-                  {user?.name || 'Member Name'}
+                  {currentUser?.name || 'Member Name'}
                 </Text>
                 <Text style={styles.memberSince}>
-                  Member since {new Date().getFullYear()}
+                  Member since {getMemberSince()}
                 </Text>
-                <Text style={styles.memberType}>
-                  Wellness Community Member
-                </Text>
+                {currentUser?.referral_code && (
+                  <Text style={styles.referralCode}>
+                    Referral Code: {currentUser.referral_code}
+                  </Text>
+                )}
               </View>
             </View>
 
@@ -117,7 +207,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
                 const IconComponent = info.icon;
                 return (
                   <View key={index} style={styles.detailRow}>
-                    <IconComponent size={16} color="#6b7280" />
+                    <IconComponent size={16} color={theme.colors.text.secondary} />
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>
                         {info.label.toUpperCase()}
@@ -131,6 +221,57 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
               })}
             </View>
           </View>
+
+          {/* Course Status Section */}
+          {(currentUser?.metahealers_status || currentUser?.john_course_status || currentUser?.naha_intro_status) && (
+            <View style={styles.courseSection}>
+              <Text style={styles.sectionTitle}>Course Status</Text>
+              <View style={styles.courseStatusCard}>
+                {currentUser?.metahealers_status && (
+                  <View style={styles.statusRow}>
+                    <Text style={styles.statusLabel}>Metahealers</Text>
+                    <View style={[styles.statusBadge, {
+                      backgroundColor: currentUser.metahealers_status === 'Active' ? '#dcfce7' : '#fef3c7'
+                    }]}>
+                      <Text style={[styles.statusText, {
+                        color: currentUser.metahealers_status === 'Active' ? '#15803d' : '#d97706'
+                      }]}>
+                        {currentUser.metahealers_status}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                {currentUser?.john_course_status && (
+                  <View style={styles.statusRow}>
+                    <Text style={styles.statusLabel}>John Course</Text>
+                    <View style={[styles.statusBadge, {
+                      backgroundColor: currentUser.john_course_status === 'Active' ? '#dcfce7' : '#fef3c7'
+                    }]}>
+                      <Text style={[styles.statusText, {
+                        color: currentUser.john_course_status === 'Active' ? '#15803d' : '#d97706'
+                      }]}>
+                        {currentUser.john_course_status}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                {currentUser?.naha_intro_status && (
+                  <View style={styles.statusRow}>
+                    <Text style={styles.statusLabel}>NAHA Intro</Text>
+                    <View style={[styles.statusBadge, {
+                      backgroundColor: currentUser.naha_intro_status === 'Active' ? '#dcfce7' : '#fef3c7'
+                    }]}>
+                      <Text style={[styles.statusText, {
+                        color: currentUser.naha_intro_status === 'Active' ? '#15803d' : '#d97706'
+                      }]}>
+                        {currentUser.naha_intro_status}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
 
           {/* Settings Menu */}
           <View style={styles.settingsSection}>
@@ -147,7 +288,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
                   >
                     <View style={styles.menuItemContent}>
                       <View style={styles.menuIcon}>
-                        <IconComponent size={20} color="#6b7280" />
+                        <IconComponent size={20} color={theme.colors.text.secondary} />
                       </View>
                       
                       <View style={styles.menuText}>
@@ -159,7 +300,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
                         </Text>
                       </View>
                       
-                      <ChevronRight size={20} color="#9ca3af" />
+                      <ChevronRight size={20} color={theme.colors.text.muted} />
                     </View>
                   </TouchableOpacity>
                   
@@ -179,7 +320,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
           >
             <View style={styles.menuItemContent}>
               <View style={[styles.menuIcon, styles.signOutIcon]}>
-                <LogOut size={20} color="#dc2626" />
+                <LogOut size={20} color={theme.colors.error} />
               </View>
               
               <View style={styles.menuText}>
@@ -214,120 +355,172 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.background,
   },
   scrollView: {
     flex: 1,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 24,
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.lg,
+    textAlign: 'center',
   },
   profileCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 24,
-    marginBottom: 16,
+    borderColor: theme.colors.border.light,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.light,
   },
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    marginBottom: theme.spacing.md,
   },
   avatar: {
     width: 80,
     height: 80,
-    backgroundColor: '#6366f1',
+    backgroundColor: theme.colors.primary,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: theme.spacing.md,
   },
   avatarText: {
-    color: '#ffffff',
-    fontSize: 24,
-    fontWeight: 'bold',
+    color: theme.colors.white,
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.bold,
   },
   userInfo: {
     flex: 1,
   },
   userName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.text.primary,
   },
   memberSince: {
-    fontSize: 14,
-    color: '#6366f1',
-    marginTop: 4,
-    fontWeight: '500',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.primary,
+    marginTop: theme.spacing.xs,
+    fontWeight: theme.typography.weights.medium,
   },
   memberType: {
-    fontSize: 14,
-    color: '#9ca3af',
-    marginTop: 4,
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
+  },
+  referralCode: {
+    fontSize: theme.typography.sizes.xs,
+    color: theme.colors.primary,
+    marginTop: theme.spacing.xs,
+    fontWeight: theme.typography.weights.medium,
   },
   divider: {
     height: 1,
-    backgroundColor: '#e5e7eb',
-    marginVertical: 16,
+    backgroundColor: theme.colors.border.light,
+    marginVertical: theme.spacing.md,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: theme.spacing.md,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.secondary,
   },
   userDetails: {
-    gap: 12,
+    gap: theme.spacing.md,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: theme.spacing.md,
   },
   detailContent: {
     flex: 1,
   },
   detailLabel: {
-    fontSize: 12,
-    color: '#9ca3af',
-    fontWeight: '500',
+    fontSize: theme.typography.sizes.xs,
+    color: theme.colors.text.muted,
+    fontWeight: theme.typography.weights.medium,
     textTransform: 'uppercase',
   },
   detailValue: {
-    fontSize: 14,
-    color: '#374151',
-    marginTop: 4,
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
+  },
+  courseSection: {
+    marginBottom: theme.spacing.lg,
+  },
+  courseStatusCard: {
+    backgroundColor: theme.colors.white,
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    ...theme.shadows.light,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.sm,
+  },
+  statusLabel: {
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+  },
+  statusBadge: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.md,
+  },
+  statusText: {
+    fontSize: theme.typography.sizes.xs,
+    fontWeight: theme.typography.weights.medium,
+    textTransform: 'capitalize',
   },
   settingsSection: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.md,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 16,
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.md,
   },
   menuItem: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 16,
+    borderColor: theme.colors.border.light,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    ...theme.shadows.light,
   },
   menuItemContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: theme.spacing.md,
   },
   menuIcon: {
     width: 40,
     height: 40,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 12,
+    backgroundColor: theme.colors.border.light,
+    borderRadius: theme.borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -338,57 +531,59 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
   },
   menuDescription: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
   },
   signOutTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#dc2626',
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.error,
   },
   signOutDescription: {
-    fontSize: 14,
-    color: '#ef4444',
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.error,
   },
   itemSpacer: {
-    height: 8,
+    height: theme.spacing.sm,
   },
   signOutButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
     borderColor: '#fecaca',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    ...theme.shadows.light,
   },
   appInfo: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 24,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: theme.colors.border.light,
     alignItems: 'center',
   },
   appName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.secondary,
   },
   appVersion: {
-    fontSize: 12,
-    color: '#9ca3af',
+    fontSize: theme.typography.sizes.xs,
+    color: theme.colors.text.muted,
     textAlign: 'center',
   },
   appTagline: {
-    fontSize: 12,
-    color: '#d1d5db',
+    fontSize: theme.typography.sizes.xs,
+    color: theme.colors.text.light,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: theme.spacing.sm,
   },
 });
 

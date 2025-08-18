@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Platform, Alert, StyleSheet, View, Text, TouchableOpacity, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { Platform, Alert, StyleSheet, View, Text, TouchableOpacity, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, CheckCircle } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
@@ -12,25 +12,31 @@ interface FormErrors {
   email?: string;
 }
 
+interface FormData {
+  email: string;
+}
+
 const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ navigation }) => {
-  const [email, setEmail] = useState<string>('');
+  const [formData, setFormData] = useState<FormData>({ email: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [emailSent, setEmailSent] = useState<boolean>(false);
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
   const { forgotPassword, loading } = useAuth();
 
-  const handleEmailChange = (value: string): void => {
-    setEmail(value);
-    if (errors.email) {
-      setErrors(prev => ({ ...prev, email: undefined }));
+  const handleInputChange = (field: keyof FormData, value: string): void => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
 
-  const validateEmail = (): boolean => {
+  const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     
-    if (!email.trim()) {
+    if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
     
@@ -39,9 +45,12 @@ const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ na
   };
 
   const handleForgotPassword = async (): Promise<void> => {
-    if (!validateEmail()) return;
+    const isValid = validateForm();
+    setIsFormValid(isValid);
+    
+    if (!isValid) return;
 
-    const result = await forgotPassword(email);
+    const result = await forgotPassword(formData.email);
     
     if (result.success) {
       setEmailSent(true);
@@ -49,58 +58,77 @@ const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ na
     } else {
       Alert.alert('Error', result.message);
     }
+    
+    setIsFormValid(false);
   };
 
   const handleBackToLogin = (): void => {
     navigation.navigate('Login');
   };
 
+  const handleGoBack = (): void => {
+    navigation.goBack();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Loading Overlay */}
+      {loading && isFormValid && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={styles.loadingText}>Sending reset link...</Text>
+          </View>
+        </View>
+      )}
+      
       <KeyboardAvoidingView 
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.content}>
-            {/* Header */}
+        <View style={styles.content}>
+          {/* Top Section - Header */}
+          <View style={styles.topSection}>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+              <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
                 <ArrowLeft size={24} color={theme.colors.text.primary} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>
-                Reset Password
-              </Text>
+              <Text style={styles.headerTitle}>Reset Password</Text>
+              <View style={styles.placeholder} />
             </View>
 
-            {!emailSent ? (
-              // Email input form
-              <View style={styles.formContainer}>
-                <View style={styles.titleContainer}>
-                  <Text style={styles.title}>
-                    Forgot Password?
-                  </Text>
-                  <Text style={styles.subtitle}>
-                    No worries! Enter your email address and we'll send you a link to reset your password.
-                  </Text>
-                </View>
+            
+            {!emailSent && (
+              <View style={styles.welcomeSection}>
+                <Text style={styles.welcomeTitle}>Forgot Password?</Text>
+                <Text style={styles.welcomeSubtitle}>No worries! Enter your email address and we'll send you a link to reset your password.</Text>
+              </View>
+            )}
+          </View>
 
-                <View style={styles.form}>
+          {!emailSent ? (
+            // Middle Section - Form
+            <View style={styles.middleSection}>
+              <View style={styles.form}>
+                <View style={styles.inputContainer}>
                   <FormInput
-                    label="Email Address"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChangeText={handleEmailChange}
+                    label=""
+                    placeholder="Email"
+                    value={formData.email}
+                    onChangeText={(value) => handleInputChange('email', value)}
                     error={errors.email}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     required
                   />
+                </View>
 
+                <View style={styles.buttonContainer}>
                   <CustomButton
                     title="Send Reset Link"
                     onPress={handleForgotPassword}
                     loading={loading}
+                    disabled={loading}
                     size="lg"
                     colorScheme="primary"
                   />
@@ -117,8 +145,10 @@ const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ na
                   </TouchableOpacity>
                 </View>
               </View>
-            ) : (
-              // Success state
+            </View>
+          ) : (
+            // Success state - Middle Section
+            <View style={styles.middleSection}>
               <View style={styles.successContainer}>
                 <View style={styles.iconContainer}>
                   <CheckCircle size={40} color={theme.colors.success} />
@@ -130,14 +160,14 @@ const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ na
                   </Text>
                   <Text style={styles.successText}>
                     We've sent a password reset link to{'\n'}
-                    <Text style={styles.emailText}>{email}</Text>
+                    <Text style={styles.emailText}>{formData.email}</Text>
                   </Text>
                   <Text style={styles.helpText}>
                     Didn't receive the email? Check your spam folder or try again.
                   </Text>
                 </View>
 
-                <View style={styles.buttonContainer}>
+                <View style={styles.successButtonContainer}>
                   <CustomButton
                     title="Back to Login"
                     onPress={handleBackToLogin}
@@ -155,9 +185,9 @@ const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ na
                   />
                 </View>
               </View>
-            )}
-          </View>
-        </ScrollView>
+            </View>
+          )}
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -168,49 +198,87 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  keyboardContainer: {
-    flex: 1,
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
   },
-  scrollView: {
+  loadingContent: {
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.borderRadius.xl,
+    ...theme.shadows.medium,
+  },
+  loadingText: {
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.md,
+    fontWeight: theme.typography.weights.medium,
+  },
+  keyboardContainer: {
     flex: 1,
   },
   content: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+  },
+  topSection: {
+    paddingTop: theme.spacing.md,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: theme.spacing.xl,
   },
   backButton: {
-    marginRight: theme.spacing.md,
+    padding: theme.spacing.sm,
   },
   headerTitle: {
-    fontSize: theme.typography.sizes.xl,
+    fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.semibold,
     color: theme.colors.text.primary,
   },
-  formContainer: {
-    flex: 1,
+  placeholder: {
+    width: 40,
   },
-  titleContainer: {
-    marginBottom: theme.spacing.lg,
+  welcomeSection: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
   },
-  title: {
-    fontSize: theme.typography.sizes.xl,
+  welcomeTitle: {
+    fontSize: 28,
     fontWeight: theme.typography.weights.bold,
-    color: theme.colors.primary,
-    marginBottom: theme.spacing.sm,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+    textAlign: 'center',
   },
-  subtitle: {
+  welcomeSubtitle: {
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text.secondary,
-    lineHeight: 24,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  middleSection: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingTop: theme.spacing.xl,
+  },
+  inputContainer: {
+    marginBottom: theme.spacing.lg,
   },
   form: {
-    marginBottom: theme.spacing.xl,
+    width: '100%',
+  },
+  buttonContainer: {
+    marginBottom: theme.spacing.lg,
   },
   footer: {
     flexDirection: 'row',
@@ -218,18 +286,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.md,
     color: theme.colors.text.secondary,
+    marginRight: theme.spacing.sm,
   },
   linkText: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.md,
     color: theme.colors.primary,
-    fontWeight: theme.typography.weights.medium,
-    marginLeft: theme.spacing.xs,
+    fontWeight: theme.typography.weights.semibold,
   },
   successContainer: {
-    flex: 1,
     alignItems: 'center',
+    width: '100%',
   },
   iconContainer: {
     width: 80,
@@ -245,9 +313,9 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   successTitle: {
-    fontSize: theme.typography.sizes.xl,
+    fontSize: 28,
     fontWeight: theme.typography.weights.bold,
-    color: theme.colors.primary,
+    color: theme.colors.text.primary,
     textAlign: 'center',
     marginBottom: theme.spacing.sm,
   },
@@ -255,7 +323,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
   },
   emailText: {
     fontWeight: theme.typography.weights.medium,
@@ -266,7 +334,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: theme.spacing.md,
   },
-  buttonContainer: {
+  successButtonContainer: {
     width: '100%',
   },
   buttonSpacing: {

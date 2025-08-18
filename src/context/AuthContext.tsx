@@ -70,10 +70,16 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       const response = await ApiService.login(email, password);
 
-      if (response.success && response.data?.token && response.data?.user) {
-        await AsyncStorage.setItem('userToken', response.data.token);
-        await AsyncStorage.setItem('userData', JSON.stringify(response.data.user));
-        setUser(response.data.user);
+      // Handle both response formats: 
+      // 1. Standard API format: { success: true, data: { user, token } }
+      // 2. Direct format: { user, token }
+      const user = response.data?.user || response.user;
+      const token = response.data?.token || response.token;
+
+      if (user && token) {
+        await AsyncStorage.setItem('userToken', token);
+        await AsyncStorage.setItem('userData', JSON.stringify(user));
+        setUser(user);
         return { success: true };
       } else {
         return { success: false, message: response.message || 'Login failed' };
@@ -140,10 +146,16 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       const response = await ApiService.register(data);
 
-      if (response.success && response.data?.token && response.data?.user) {
-        await AsyncStorage.setItem('userToken', response.data.token);
-        await AsyncStorage.setItem('userData', JSON.stringify(response.data.user));
-        setUser(response.data.user);
+      // Handle both response formats: 
+      // 1. Standard API format: { success: true, data: { user, token } }
+      // 2. Direct format: { user, token }
+      const user = response.data?.user || response.user;
+      const token = response.data?.token || response.token;
+
+      if (user && token) {
+        await AsyncStorage.setItem('userToken', token);
+        await AsyncStorage.setItem('userData', JSON.stringify(user));
+        setUser(user);
         return { success: true };
       } else {
         return { success: false, message: response.message || 'Registration failed' };

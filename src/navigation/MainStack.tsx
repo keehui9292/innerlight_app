@@ -4,6 +4,7 @@ import { Home, Calendar, User } from 'lucide-react-native';
 import HomeScreen from '../screens/main/HomeScreen';
 import AppointmentScreen from '../screens/main/AppointmentScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
+import { theme } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -13,19 +14,20 @@ const TabNavigator = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#6366f1',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.text.muted,
         tabBarStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: theme.colors.white,
           borderTopWidth: 1,
-          borderTopColor: '#e5e7eb',
+          borderTopColor: theme.colors.border.light,
           height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          paddingBottom: theme.spacing.sm,
+          paddingTop: theme.spacing.sm,
+          ...theme.shadows.light,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
+          fontSize: theme.typography.sizes.xs,
+          fontWeight: theme.typography.weights.medium,
         },
         tabBarIcon: ({ color, size, focused }) => {
           let IconComponent;
@@ -73,7 +75,7 @@ const MainStack = () => {
     <Stack.Navigator 
       screenOptions={{ 
         headerShown: false,
-        cardStyle: { backgroundColor: '#ffffff' },
+        cardStyle: { backgroundColor: theme.colors.background },
       }}
     >
       <Stack.Screen name="MainTabs" component={TabNavigator} />

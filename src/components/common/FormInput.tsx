@@ -23,19 +23,20 @@ const FormInput: React.FC<FormInputProps & TextInputProps> = ({
   };
 
   return (
-    <View style={[styles.container, { marginBottom: 16 }]}>
+    <View style={styles.container}>
       {label && (
         <Text style={styles.label}>
           {label}
         </Text>
       )}
       
-      <View style={styles.inputContainer}>
+      <View style={[
+        styles.inputContainer,
+        error ? styles.inputContainerError : styles.inputContainerNormal,
+        value ? styles.inputContainerFocused : null
+      ]}>
         <TextInput
-          style={[
-            styles.input,
-            error ? styles.inputError : styles.inputNormal
-          ]}
+          style={styles.input}
           placeholder={placeholder}
           value={value}
           onChangeText={onChangeText}
@@ -43,6 +44,7 @@ const FormInput: React.FC<FormInputProps & TextInputProps> = ({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           placeholderTextColor={theme.colors.text.muted}
+          selectionColor={theme.colors.primary}
           {...props}
         />
 
@@ -50,6 +52,7 @@ const FormInput: React.FC<FormInputProps & TextInputProps> = ({
           <TouchableOpacity 
             style={styles.eyeButton}
             onPress={togglePasswordVisibility}
+            activeOpacity={0.7}
           >
             {showPassword ? (
               <EyeOff size={20} color={theme.colors.text.secondary} />
@@ -81,33 +84,42 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     position: 'relative',
-  },
-  input: {
-    height: 48,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
-    fontSize: theme.typography.sizes.md,
-    borderWidth: 1,
-    borderRadius: theme.borderRadius.md,
+    borderWidth: 1.5,
+    borderRadius: theme.borderRadius.lg,
     backgroundColor: theme.colors.white,
-    color: theme.colors.text.primary,
-    ...theme.shadows.light,
+    minHeight: 56,
+    justifyContent: 'center',
+    transition: 'all 0.2s ease',
   },
-  inputNormal: {
+  inputContainerNormal: {
     borderColor: theme.colors.border.light,
   },
-  inputError: {
+  inputContainerFocused: {
+    borderColor: theme.colors.primary,
+    ...theme.shadows.light,
+  },
+  inputContainerError: {
     borderColor: theme.colors.error,
+  },
+  input: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.primary,
+    fontWeight: theme.typography.weights.regular,
   },
   eyeButton: {
     position: 'absolute',
-    right: theme.spacing.md,
-    top: 14,
+    right: theme.spacing.lg,
+    padding: theme.spacing.sm,
   },
   errorText: {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.error,
     marginTop: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
+    fontWeight: theme.typography.weights.medium,
   },
 });
 

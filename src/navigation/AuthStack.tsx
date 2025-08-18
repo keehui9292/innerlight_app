@@ -1,7 +1,8 @@
 import { createStackNavigator } from '@react-navigation/stack';
+import GetStartedScreen from '../screens/auth/GetStartedScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
-import RegisterScreen from '../screens/auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import { theme } from '../constants/theme';
 
 const Stack = createStackNavigator();
 
@@ -10,20 +11,14 @@ const AuthStack = () => {
     <Stack.Navigator 
       screenOptions={{ 
         headerShown: false,
-        cardStyle: { backgroundColor: '#ffffff' },
+        cardStyle: { backgroundColor: theme.colors.background },
         gestureEnabled: true,
         gestureDirection: 'horizontal',
       }}
-      initialRouteName="Login"
+      initialRouteName="GetStarted"
     >
+      <Stack.Screen name="GetStarted" component={GetStartedScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen 
-        name="Register" 
-        component={RegisterScreen}
-        options={{
-          gestureDirection: 'horizontal',
-        }}
-      />
       <Stack.Screen 
         name="ForgotPassword" 
         component={ForgotPasswordScreen}

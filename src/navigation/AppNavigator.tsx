@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import AuthStack from './AuthStack';
 import MainStack from './MainStack';
 import LoadingScreen from '../components/common/LoadingScreen';
+import { theme } from '../constants/theme';
 
 const Stack = createStackNavigator();
 
@@ -18,7 +19,7 @@ const AppNavigator: React.FC = () => {
     <Stack.Navigator 
       screenOptions={{ 
         headerShown: false,
-        cardStyle: { backgroundColor: '#ffffff' },
+        cardStyle: { backgroundColor: theme.colors.background },
         animationEnabled: true,
       }}
     >

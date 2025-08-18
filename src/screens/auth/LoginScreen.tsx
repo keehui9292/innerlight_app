@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Platform, Alert, StyleSheet, View, Text, TouchableOpacity, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { Platform, Alert, StyleSheet, View, Text, TouchableOpacity, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import FormInput from '../../components/common/FormInput';
 import CustomButton from '../../components/common/Button';
@@ -23,6 +24,8 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
     password: ''
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
   const { login, loading } = useAuth();
 
   const handleInputChange = (field: keyof FormData, value: string): void => {
@@ -53,96 +56,120 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
   };
 
   const handleLogin = async (): Promise<void> => {
-    if (!validateForm()) return;
+    const isValid = validateForm();
+    setIsFormValid(isValid);
+    
+    if (!isValid) return;
 
     const result = await login(formData.email, formData.password);
     
     if (!result.success) {
-      Alert.alert('Login Failed', result.message);
+      Alert.alert('Login Failed', result.message || 'Please check your credentials and try again.');
     }
+    
+    setIsFormValid(false);
   };
 
   const handleForgotPassword = (): void => {
     navigation.navigate('ForgotPassword');
   };
 
+  const handleGoBack = (): void => {
+    navigation.goBack();
+  };
+
+
+  const toggleRememberMe = (): void => {
+    setRememberMe(!rememberMe);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Loading Overlay */}
+      {loading && isFormValid && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={styles.loadingText}>Signing you in...</Text>
+          </View>
+        </View>
+      )}
+      
       <KeyboardAvoidingView 
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.content}>
-            {/* Header */}
+        <View style={styles.content}>
+          {/* Top Section - Header */}
+          <View style={styles.topSection}>
             <View style={styles.header}>
-              <Text style={styles.title}>
-                Innerlight Community
-              </Text>
-              <Text style={styles.subtitle}>
-                Welcome back! Please sign in to your account
-              </Text>
+              <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+                <ArrowLeft size={24} color={theme.colors.text.primary} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Login Account</Text>
+              <View style={styles.placeholder} />
             </View>
+            
+            <View style={styles.welcomeSection}>
+              <Text style={styles.welcomeTitle}>Welcome Back!</Text>
+              <Text style={styles.welcomeSubtitle}>Sign in to continue</Text>
+            </View>
+          </View>
 
-            {/* Form */}
+          {/* Middle Section - Form */}
+          <View style={styles.middleSection}>
             <View style={styles.form}>
-              <FormInput
-                label="Email Address"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChangeText={(value) => handleInputChange('email', value)}
-                error={errors.email}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                required
-              />
+              <View style={styles.inputContainer}>
+                <FormInput
+                  label=""
+                  placeholder="Email"
+                  value={formData.email}
+                  onChangeText={(value) => handleInputChange('email', value)}
+                  error={errors.email}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  required
+                />
+              </View>
 
-              <FormInput
-                label="Password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChangeText={(value) => handleInputChange('password', value)}
-                error={errors.password}
-                secureTextEntry
-                required
-              />
+              <View style={styles.inputContainer}>
+                <FormInput
+                  label=""
+                  placeholder="Password"
+                  value={formData.password}
+                  onChangeText={(value) => handleInputChange('password', value)}
+                  error={errors.password}
+                  secureTextEntry
+                  required
+                />
+              </View>
 
-              <View style={styles.forgotContainer}>
+              {/* Remember me & Forgot Password */}
+              <View style={styles.optionsRow}>
+                <TouchableOpacity style={styles.checkboxContainer} onPress={toggleRememberMe}>
+                  <View style={[styles.checkbox, rememberMe && styles.checkedBox]}>
+                    {rememberMe && <View style={styles.checkmark} />}
+                  </View>
+                  <Text style={styles.checkboxText}>Remember me</Text>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={handleForgotPassword}>
-                  <Text style={styles.forgotText}>
-                    Forgot Password?
-                  </Text>
+                  <Text style={styles.forgotText}>Forgot password?</Text>
                 </TouchableOpacity>
               </View>
 
-              <CustomButton
-                title="Sign In"
-                onPress={handleLogin}
-                loading={loading}
-                size="lg"
-                colorScheme="primary"
-              />
-            </View>
-
-            {/* Footer */}
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                Don't have an account? 
-              </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.linkText}>
-                  Sign Up
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.memberFooter}>
-              <Text style={styles.memberText}>
-                Members only access
-              </Text>
+              <View style={styles.buttonContainer}>
+                <CustomButton
+                  title="Log In"
+                  onPress={handleLogin}
+                  loading={loading}
+                  disabled={loading}
+                  size="lg"
+                  colorScheme="primary"
+                />
+              </View>
             </View>
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -153,70 +180,143 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  keyboardContainer: {
-    flex: 1,
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
   },
-  scrollView: {
+  loadingContent: {
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.borderRadius.xl,
+    ...theme.shadows.medium,
+  },
+  loadingText: {
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.md,
+    fontWeight: theme.typography.weights.medium,
+  },
+  keyboardContainer: {
     flex: 1,
   },
   content: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xxl + theme.spacing.md,
+  },
+  topSection: {
+    paddingTop: theme.spacing.md,
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.xxl + theme.spacing.sm,
-  },
-  title: {
-    fontSize: theme.typography.sizes.xxl,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.primary,
-    textAlign: 'center',
-    marginBottom: theme.spacing.sm,
-  },
-  subtitle: {
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 28,
-  },
-  form: {
+    justifyContent: 'space-between',
     marginBottom: theme.spacing.xl,
   },
-  forgotContainer: {
-    alignItems: 'flex-end',
-    marginBottom: theme.spacing.md,
+  backButton: {
+    padding: theme.spacing.sm,
+  },
+  headerTitle: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.text.primary,
+  },
+  placeholder: {
+    width: 40,
+  },
+  welcomeSection: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  welcomeTitle: {
+    fontSize: 28,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+  },
+  welcomeSubtitle: {
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.secondary,
+  },
+  middleSection: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingTop: theme.spacing.xl,
+  },
+  inputContainer: {
+    marginBottom: theme.spacing.lg,
+  },
+  form: {
+    width: '100%',
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xl,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 2,
+    borderColor: theme.colors.border.default,
+    borderRadius: 3,
+    marginRight: theme.spacing.sm,
+    backgroundColor: theme.colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkedBox: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  checkmark: {
+    width: 8,
+    height: 8,
+    backgroundColor: theme.colors.white,
+    borderRadius: 1,
+  },
+  checkboxText: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weights.medium,
   },
   forgotText: {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.primary,
     fontWeight: theme.typography.weights.medium,
   },
+  buttonContainer: {
+    marginTop: 0
+  },
+  bottomSection: {
+    paddingBottom: theme.spacing.xxl,
+    marginTop: 'auto',
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: theme.spacing.xl,
   },
   footerText: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.md,
     color: theme.colors.text.secondary,
   },
   linkText: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.md,
     color: theme.colors.primary,
-    fontWeight: theme.typography.weights.medium,
-    marginLeft: theme.spacing.xs,
-  },
-  memberFooter: {
-    alignItems: 'center',
-    marginTop: theme.spacing.md,
-  },
-  memberText: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text.muted,
-    textAlign: 'center',
+    fontWeight: theme.typography.weights.semibold,
   },
 });
 

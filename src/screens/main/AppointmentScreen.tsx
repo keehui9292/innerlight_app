@@ -28,49 +28,20 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
       const response = await ApiService.getAppointments();
       
       if (response.success && response.data) {
-        setAppointments(response.data);
+        // Handle paginated response format
+        const appointmentsArray = Array.isArray(response.data) 
+          ? response.data 
+          : response.data.data || [];
+        
+        setAppointments(appointmentsArray);
       } else {
-        // Fallback to mock data for demo if API is not available
-        const mockAppointments: Appointment[] = [
-          {
-            id: '1',
-            title: 'Wellness Consultation',
-            description: 'Initial wellness assessment and planning session',
-            date: new Date().toISOString().split('T')[0],
-            time: '10:00',
-            status: 'confirmed',
-            provider: 'Dr. Sarah Johnson',
-            location: 'Innerlight Center - Room 101'
-          },
-          {
-            id: '2',
-            title: 'Follow-up Session',
-            description: 'Progress review and adjustment session',
-            date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            time: '14:30',
-            status: 'pending',
-            provider: 'Dr. Sarah Johnson',
-            location: 'Innerlight Center - Room 203'
-          }
-        ];
-        setAppointments(mockAppointments);
+        // Set empty array if API call fails
+        setAppointments([]);
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      // Fallback to mock data for demo
-      const mockAppointments: Appointment[] = [
-        {
-          id: '1',
-          title: 'Wellness Consultation',
-          description: 'Initial wellness assessment and planning session',
-          date: new Date().toISOString().split('T')[0],
-          time: '10:00',
-          status: 'confirmed',
-          provider: 'Dr. Sarah Johnson',
-          location: 'Innerlight Center - Room 101'
-        }
-      ];
-      setAppointments(mockAppointments);
+      // Set empty array on error instead of mock data
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
@@ -411,7 +382,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 8,
     ...theme.shadows.medium,
   },
 });
