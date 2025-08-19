@@ -1,5 +1,5 @@
 import React, { Fragment, useState, useEffect, useCallback } from 'react';
-import { Platform, Alert, View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { Platform, Alert, View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, Clipboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   User, 
@@ -10,7 +10,8 @@ import {
   ChevronRight,
   Mail,
   Phone,
-  MapPin
+  MapPin,
+  Copy
 } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { TabScreenProps } from '../../types';
@@ -151,6 +152,18 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
     return formatDate(createdAt);
   };
 
+  const copyReferralCode = async (): Promise<void> => {
+    if (currentUser?.referral_code) {
+      try {
+        await Clipboard.setString(currentUser.referral_code);
+        Alert.alert('Copied!', 'Referral code copied to clipboard');
+      } catch (error) {
+        console.error('Error copying to clipboard:', error);
+        Alert.alert('Error', 'Failed to copy referral code');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -192,9 +205,19 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
                   Member since {getMemberSince()}
                 </Text>
                 {currentUser?.referral_code && (
-                  <Text style={styles.referralCode}>
-                    Referral Code: {currentUser.referral_code}
-                  </Text>
+                  <TouchableOpacity 
+                    onPress={copyReferralCode}
+                    style={styles.referralCodeContainer}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.referralCodeLabel}>
+                      Referral Code: 
+                    </Text>
+                    <Text style={styles.referralCode}>
+                      {currentUser.referral_code}
+                    </Text>
+                    <Copy size={14} color={theme.colors.primary} style={styles.copyIcon} />
+                  </TouchableOpacity>
                 )}
               </View>
             </View>
@@ -419,11 +442,31 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     marginTop: theme.spacing.xs,
   },
+  referralCodeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    backgroundColor: '#f9f8f7',
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  referralCodeLabel: {
+    fontSize: theme.typography.sizes.xs,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weights.medium,
+  },
   referralCode: {
     fontSize: theme.typography.sizes.xs,
     color: theme.colors.primary,
-    marginTop: theme.spacing.xs,
-    fontWeight: theme.typography.weights.medium,
+    fontWeight: theme.typography.weights.bold,
+    marginLeft: theme.spacing.xs,
+    flex: 1,
+  },
+  copyIcon: {
+    marginLeft: theme.spacing.xs,
   },
   divider: {
     height: 1,
