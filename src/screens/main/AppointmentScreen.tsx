@@ -13,7 +13,7 @@ interface StatusColors {
   dot: string;
 }
 
-const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
+const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigation }) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -25,7 +25,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
   const fetchAppointments = async (): Promise<void> => {
     try {
       setLoading(true);
-      const response = await ApiService.getAppointments();
+      const response: any = await ApiService.getAppointments();
       
       if (response.success && response.data) {
         // Handle paginated response format
@@ -98,7 +98,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = () => {
   };
 
   const handleBookAppointment = (): void => {
-    Alert.alert('Coming Soon', 'Appointment booking feature will be available soon!');
+    navigation.navigate('AppointmentForm');
   };
 
   if (loading) {

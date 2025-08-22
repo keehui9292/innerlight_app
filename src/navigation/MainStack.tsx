@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Calendar, User } from 'lucide-react-native';
 import HomeScreen from '../screens/main/HomeScreen';
 import AppointmentScreen from '../screens/main/AppointmentScreen';
+import AppointmentFormScreen from '../screens/main/AppointmentFormScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import { theme } from '../constants/theme';
 
@@ -20,17 +21,18 @@ const TabNavigator = () => {
           backgroundColor: theme.colors.white,
           borderTopWidth: 1,
           borderTopColor: theme.colors.border.light,
-          height: 60,
+          height: 75,
           paddingBottom: theme.spacing.sm,
           paddingTop: theme.spacing.sm,
           ...theme.shadows.light,
         },
         tabBarLabelStyle: {
-          fontSize: theme.typography.sizes.xs,
+          fontSize: 10,
           fontWeight: theme.typography.weights.medium,
+          marginTop: 5
         },
         tabBarIcon: ({ color, size, focused }) => {
-          let IconComponent;
+          let IconComponent: any;
 
           if (route.name === 'Home') {
             IconComponent = Home;
@@ -79,6 +81,7 @@ const MainStack = () => {
       }}
     >
       <Stack.Screen name="MainTabs" component={TabNavigator} />
+      <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} />
     </Stack.Navigator>
   );
 };

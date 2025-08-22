@@ -86,6 +86,11 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
+export type MainStackParamList = {
+  MainTabs: undefined;
+  AppointmentForm: undefined;
+};
+
 export type StackScreenProps<T extends keyof RootStackParamList> = {
   navigation: any;
   route: any;
