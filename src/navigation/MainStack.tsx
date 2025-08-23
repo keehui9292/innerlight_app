@@ -22,7 +22,7 @@ const TabNavigator = () => {
           backgroundColor: theme.colors.white,
           borderTopWidth: 1,
           borderTopColor: theme.colors.border.light,
-          height: 75,
+          height: 80,
           paddingBottom: theme.spacing.sm,
           paddingTop: theme.spacing.sm,
           ...theme.shadows.light,

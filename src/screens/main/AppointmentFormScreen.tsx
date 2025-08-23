@@ -11,9 +11,10 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Calendar, CheckCircle, Clock, DollarSign } from 'lucide-react-native';
+import { Calendar, CheckCircle, Clock, DollarSign } from 'lucide-react-native';
 import ApiService from '../../services/apiService';
 import CustomButton from '../../components/common/Button';
+import Header from '../../components/common/Header';
 import { theme } from '../../constants/theme';
 
 // --- Interfaces Updated to Match Provided API JSON ---
@@ -95,7 +96,6 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
   const [submitting, setSubmitting] = useState(false);
   const [totalPrice, setTotalPrice] = useState<number>(0);
   
-  // State for the success screen
   const [isSuccess, setIsSuccess] = useState(false);
   const [successData, setSuccessData] = useState<AppointmentSuccessData | null>(null);
 
@@ -104,7 +104,6 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
   }, []);
 
   useEffect(() => {
-    // Recalculate price only when a form is loaded and data changes
     if (selectedForm) {
       calculateTotalPrice();
     }
@@ -137,7 +136,7 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
     });
     setFormData(initialData);
     setErrors({});
-    setTotalPrice(0); // Reset price
+    setTotalPrice(0);
   };
 
   const calculateTotalPrice = () => {
@@ -145,7 +144,6 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
     if (!selectedForm) return;
 
     selectedForm.fields.forEach(field => {
-      // Check if the field has pricing and options
       if (field.has_pricing === 'on' && field.options && formData[field.name]) {
         const selectedValue = formData[field.name];
         const selectedOption = field.options.find(opt => opt.value === selectedValue);
@@ -181,7 +179,6 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
   const handleSubmit = async () => {
     if (!validateForm() || !selectedForm) return;
 
-    // Dynamically find field names required for the API payload
     const dateField = selectedForm.fields.find(f => f.type === 'date');
     const timeField = selectedForm.fields.find(f => f.type === 'time');
     const nameField = selectedForm.fields.find(f => f.name.includes('name'));
@@ -191,7 +188,6 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
     try {
       setSubmitting(true);
       
-      // Construct the payload according to API documentation
       const appointmentData: any = {
         appointment_form_id: selectedForm.id,
         appointment_date: dateField ? formData[dateField.name] as string : undefined,
@@ -199,14 +195,14 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
         guest_name: nameField ? formData[nameField.name] as string : undefined,
         guest_email: emailField ? formData[emailField.name] as string : undefined,
         guest_phone: phoneField ? formData[phoneField.name] as string : undefined,
-        form_data: formData, // The complete form data
+        form_data: formData,
       };
 
       const response: any = await ApiService.createAppointment(appointmentData);
       
       if (response.success) {
         setSuccessData(response.data);
-        setIsSuccess(true); // Show success screen
+        setIsSuccess(true);
       } else {
         Alert.alert('Error', response.message || 'Failed to book appointment');
       }
@@ -222,7 +218,6 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
     setIsSuccess(false);
     setSuccessData(null);
     if (selectedForm) initializeFormData(selectedForm);
-    // Navigate back and refresh the appointments list
     navigation.navigate('MainTabs', {
       screen: 'Appointments',
       params: { refresh: true }
@@ -416,13 +411,9 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <ArrowLeft size={24} color={theme.colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{selectedForm?.name || 'Book Appointment'}</Text>
-        <View style={styles.headerRight} />
-      </View>
+      <Header
+        title={selectedForm?.name || 'Book Appointment'}
+      />
 
       <View style={styles.scrollContainer}>
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
@@ -465,33 +456,14 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
   );
 };
 
+// --- STYLE ADJUSTMENTS HAVE BEEN APPLIED BELOW ---
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background,
         ...(Platform.OS === 'web' && { height: '100vh' as any, overflow: 'hidden' }),
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: theme.spacing.md,
-        paddingVertical: theme.spacing.md,
-        backgroundColor: theme.colors.white,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.colors.border.subtle,
-        height: 60,
-        zIndex: 10,
-        ...theme.shadows.elegant,
-    },
-    backButton: { padding: theme.spacing.sm },
-    headerTitle: { 
-        fontSize: theme.typography.sizes.lg, 
-        fontWeight: theme.typography.weights.medium, 
-        color: theme.colors.text.primary,
-        letterSpacing: -0.2,
-    },
-    headerRight: { width: 40 },
     scrollContainer: {
         ...Platform.select({
             web: { position: 'absolute', top: 60, bottom: 0, left: 0, right: 0 },
@@ -500,7 +472,6 @@ const styles = StyleSheet.create({
     },
     scrollContent: { 
         padding: theme.spacing.md, 
-        paddingBottom: 100,
     },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     loadingText: { marginTop: theme.spacing.md, fontSize: theme.typography.sizes.md, color: theme.colors.text.secondary },
@@ -512,7 +483,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: theme.spacing.lg,
     },
-    section: { marginBottom: theme.spacing.lg },
+    section: { marginBottom: 0 },
     sectionTitle: { 
         fontSize: theme.typography.sizes.lg, 
         fontWeight: theme.typography.weights.medium, 
@@ -523,17 +494,17 @@ const styles = StyleSheet.create({
     dateTimeButton: { 
         flexDirection: 'row', 
         alignItems: 'center', 
-        padding: theme.spacing.lg, 
+        paddingHorizontal: theme.spacing.lg,
         backgroundColor: theme.colors.white, 
         borderWidth: 1, 
         borderColor: theme.colors.border.default, 
         borderRadius: theme.borderRadius.lg, 
         gap: theme.spacing.md,
-        minHeight: 56,
+        height: 50, // <-- SET EXPLICIT HEIGHT
         ...theme.shadows.elegant,
     },
     dateTimeText: { 
-        fontSize: theme.typography.sizes.lg, 
+        fontSize: theme.typography.sizes.md,
         color: theme.colors.text.primary,
         letterSpacing: -0.2,
     },
@@ -550,21 +521,23 @@ const styles = StyleSheet.create({
         borderWidth: 1, 
         borderColor: theme.colors.border.default, 
         borderRadius: theme.borderRadius.lg, 
-        padding: theme.spacing.lg, 
-        fontSize: theme.typography.sizes.lg, 
+        paddingHorizontal: theme.spacing.lg,
+        fontSize: theme.typography.sizes.md,
         backgroundColor: theme.colors.white, 
         color: theme.colors.text.primary,
+        height: 50, // <-- SET EXPLICIT HEIGHT
         ...theme.shadows.elegant,
     },
     textArea: { 
         borderWidth: 1, 
         borderColor: theme.colors.border.default, 
         borderRadius: theme.borderRadius.lg, 
-        padding: theme.spacing.lg, 
-        fontSize: theme.typography.sizes.lg, 
+        paddingVertical: theme.spacing.md, // Keep vertical padding for multi-line
+        paddingHorizontal: theme.spacing.lg,
+        fontSize: theme.typography.sizes.md,
         backgroundColor: theme.colors.white, 
         color: theme.colors.text.primary, 
-        minHeight: 120, 
+        minHeight: 120, // Keep minHeight for multi-line
         textAlignVertical: 'top',
         ...theme.shadows.elegant,
     },
@@ -575,7 +548,7 @@ const styles = StyleSheet.create({
         marginTop: theme.spacing.sm,
         fontWeight: theme.typography.weights.medium,
     },
-    selectContainer: { gap: theme.spacing.md },
+    selectContainer: { gap: theme.spacing.sm },
     optionButton: { 
         borderWidth: 1, 
         borderColor: theme.colors.border.default, 
@@ -591,12 +564,12 @@ const styles = StyleSheet.create({
     optionContent: { 
         flexDirection: 'row', 
         alignItems: 'center', 
-        padding: theme.spacing.lg, 
+        paddingHorizontal: theme.spacing.lg,
         gap: theme.spacing.md,
-        minHeight: 56,
+        height: 50, // <-- SET EXPLICIT HEIGHT
     },
     optionText: { 
-        fontSize: theme.typography.sizes.lg, 
+        fontSize: theme.typography.sizes.md,
         color: theme.colors.text.primary, 
         fontWeight: theme.typography.weights.regular, 
         flex: 1,
@@ -608,12 +581,12 @@ const styles = StyleSheet.create({
     },
     priceContainer: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs },
     priceText: { fontSize: theme.typography.sizes.sm, color: theme.colors.text.secondary, fontWeight: theme.typography.weights.medium },
-    priceSection: { marginVertical: theme.spacing.xxl },
+    priceSection: { marginVertical: theme.spacing.xl },
     totalPriceContainer: { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        padding: theme.spacing.xxl, 
+        padding: theme.spacing.lg,
         backgroundColor: theme.colors.white, 
         borderRadius: theme.borderRadius.xl, 
         borderWidth: 1, 
@@ -621,20 +594,19 @@ const styles = StyleSheet.create({
         ...theme.shadows.soft,
     },
     totalPriceLabel: { 
-        fontSize: theme.typography.sizes.lg, 
+        fontSize: theme.typography.sizes.md,
         fontWeight: theme.typography.weights.regular, 
         color: theme.colors.text.tertiary,
         letterSpacing: -0.2,
     },
     totalPriceValue: { 
-        fontSize: 32, 
+        fontSize: 28,
         fontWeight: theme.typography.weights.light, 
         color: theme.colors.primary,
         letterSpacing: -0.8,
     },
     submitContainer: { 
-        paddingVertical: theme.spacing.xxl,
-        paddingTop: theme.spacing.xl,
+        paddingTop: theme.spacing.lg,
     },
     successContainer: { 
         flex: 1, 
@@ -686,13 +658,16 @@ const webStyles = {
     dateInput: (hasError: boolean): React.CSSProperties => ({
       border: `1px solid ${hasError ? theme.colors.warning : theme.colors.border.light}`,
       borderRadius: theme.borderRadius.md,
-      padding: '11px',
+      padding: '0 12px', // Adjust web padding for fixed height
       fontSize: theme.typography.sizes.md,
       backgroundColor: theme.colors.white,
       color: theme.colors.text.primary,
       fontFamily: 'inherit',
       width: '100%',
       boxSizing: 'border-box',
+      height: '50px', // Set fixed height for web too
+      display: 'flex',
+      alignItems: 'center',
     }),
 };
 

@@ -20,7 +20,6 @@ const AppNavigator: React.FC = () => {
       screenOptions={{ 
         headerShown: false,
         cardStyle: { backgroundColor: theme.colors.background },
-        animationEnabled: true,
       }}
     >
       {isAuthenticated ? (

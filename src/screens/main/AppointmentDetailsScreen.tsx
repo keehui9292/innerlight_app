@@ -14,7 +14,7 @@ import CustomButton from '../../components/common/Button';
 import { theme } from '../../constants/theme';
 import { Appointment } from '../../types';
 import * as ExpoCalendar from 'expo-calendar';
-
+import Header from '../../components/common/Header';
 interface AppointmentDetailsScreenProps {
   navigation: any;
   route: any;
@@ -205,17 +205,9 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <ArrowLeft size={24} color={theme.colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Appointment Details</Text>
-        <View style={styles.headerRight} />
-      </View>
+      <Header
+        title={'Book Appointment'}
+      />
 
       <View style={styles.scrollContainer}>
         <ScrollView 
@@ -348,7 +340,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.lg,
     backgroundColor: theme.colors.white,
     borderBottomWidth: 1,
@@ -377,7 +369,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.md,
-    paddingBottom: 100,
   },
   errorContainer: {
     flex: 1,
@@ -450,8 +441,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: theme.spacing.xl,
-    marginTop: theme.spacing.xl,
+    paddingTop: theme.spacing.md,
+    marginTop: 0,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border.subtle,
   },
@@ -526,9 +517,6 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
   },
   mouSection: {
-    marginTop: theme.spacing.xl,
-    marginBottom: theme.spacing.xxl,
-    paddingBottom: theme.spacing.xl,
   },
   mouDisabledText: {
     fontSize: theme.typography.sizes.sm,
