@@ -10,11 +10,35 @@ export interface User {
 
 export interface Appointment {
   id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
+  appointment_form_id: string;
+  user_id: string;
+  website_id: string;
+  appointment_date: string;
+  appointment_time: string;
+  form_data: {
+    appointment_date?: string;
+    appointment_time?: string;
+    full_name?: string;
+    email?: string;
+    phone?: string;
+    service_type?: string;
+    notes?: string;
+    [key: string]: any;
+  };
+  total_price: string;
   status: 'confirmed' | 'pending' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+  appointment_form: {
+    id: string;
+    name: string;
+    description?: string | null;
+  };
+  // Legacy fields for backward compatibility
+  title?: string;
+  description?: string;
+  date?: string;
+  time?: string;
   provider?: string;
   location?: string;
 }
@@ -89,6 +113,9 @@ export type MainTabParamList = {
 export type MainStackParamList = {
   MainTabs: undefined;
   AppointmentForm: undefined;
+  AppointmentDetails: {
+    appointment: Appointment;
+  };
 };
 
 export type StackScreenProps<T extends keyof RootStackParamList> = {

@@ -4,6 +4,7 @@ import { Home, Calendar, User } from 'lucide-react-native';
 import HomeScreen from '../screens/main/HomeScreen';
 import AppointmentScreen from '../screens/main/AppointmentScreen';
 import AppointmentFormScreen from '../screens/main/AppointmentFormScreen';
+import AppointmentDetailsScreen from '../screens/main/AppointmentDetailsScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import { theme } from '../constants/theme';
 
@@ -82,6 +83,7 @@ const MainStack = () => {
     >
       <Stack.Screen name="MainTabs" component={TabNavigator} />
       <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} />
+      <Stack.Screen name="AppointmentDetails" component={AppointmentDetailsScreen} />
     </Stack.Navigator>
   );
 };

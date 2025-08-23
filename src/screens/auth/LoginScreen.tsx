@@ -100,73 +100,66 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.content}>
-          {/* Top Section - Header */}
-          <View style={styles.topSection}>
-            <View style={styles.header}>
-              <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-                <ArrowLeft size={24} color={theme.colors.text.primary} />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Login Account</Text>
-              <View style={styles.placeholder} />
-            </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+              <ArrowLeft size={20} color={theme.colors.text.primary} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Login Account</Text>
+            <View style={styles.placeholder} />
+          </View>
             
-            <View style={styles.welcomeSection}>
-              <Text style={styles.welcomeTitle}>Welcome Back!</Text>
-              <Text style={styles.welcomeSubtitle}>Sign in to continue</Text>
-            </View>
+          {/* Welcome Section */}
+          <View style={styles.welcomeSection}>
+            <Text style={styles.welcomeTitle}>Welcome Back!</Text>
+            <Text style={styles.welcomeSubtitle}>Sign in to continue</Text>
           </View>
 
-          {/* Middle Section - Form */}
-          <View style={styles.middleSection}>
-            <View style={styles.form}>
-              <View style={styles.inputContainer}>
-                <FormInput
-                  label=""
-                  placeholder="Email"
-                  value={formData.email}
-                  onChangeText={(value) => handleInputChange('email', value)}
-                  error={errors.email}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  required
-                />
-              </View>
+          {/* Form Section */}
+          <View style={styles.formSection}>
+            <FormInput
+              label=""
+              placeholder="Email"
+              value={formData.email}
+              onChangeText={(value) => handleInputChange('email', value)}
+              error={errors.email}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              required
+            />
 
-              <View style={styles.inputContainer}>
-                <FormInput
-                  label=""
-                  placeholder="Password"
-                  value={formData.password}
-                  onChangeText={(value) => handleInputChange('password', value)}
-                  error={errors.password}
-                  secureTextEntry
-                  required
-                />
-              </View>
+            <FormInput
+              label=""
+              placeholder="Password"
+              value={formData.password}
+              onChangeText={(value) => handleInputChange('password', value)}
+              error={errors.password}
+              secureTextEntry
+              required
+            />
 
-              {/* Remember me & Forgot Password */}
-              <View style={styles.optionsRow}>
-                <TouchableOpacity style={styles.checkboxContainer} onPress={toggleRememberMe}>
-                  <View style={[styles.checkbox, rememberMe && styles.checkedBox]}>
-                    {rememberMe && <View style={styles.checkmark} />}
-                  </View>
-                  <Text style={styles.checkboxText}>Remember me</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleForgotPassword}>
-                  <Text style={styles.forgotText}>Forgot password?</Text>
-                </TouchableOpacity>
-              </View>
+            {/* Remember me & Forgot Password */}
+            <View style={styles.optionsRow}>
+              <TouchableOpacity style={styles.checkboxContainer} onPress={toggleRememberMe}>
+                <View style={[styles.checkbox, rememberMe && styles.checkedBox]}>
+                  {rememberMe && <View style={styles.checkmark} />}
+                </View>
+                <Text style={styles.checkboxText}>Remember me</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleForgotPassword}>
+                <Text style={styles.forgotText}>Forgot password?</Text>
+              </TouchableOpacity>
+            </View>
 
-              <View style={styles.buttonContainer}>
-                <CustomButton
-                  title="Log In"
-                  onPress={handleLogin}
-                  loading={loading}
-                  disabled={loading}
-                  size="lg"
-                  colorScheme="primary"
-                />
-              </View>
+            <View style={styles.buttonContainer}>
+              <CustomButton
+                title="Log In"
+                onPress={handleLogin}
+                loading={loading}
+                disabled={loading}
+                size="lg"
+                colorScheme="primary"
+              />
             </View>
           </View>
         </View>
@@ -209,23 +202,21 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  topSection: {
-    paddingTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
   },
   backButton: {
-    padding: theme.spacing.sm,
+    padding: theme.spacing.xs,
   },
   headerTitle: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.semibold,
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
   },
   placeholder: {
@@ -233,34 +224,30 @@ const styles = StyleSheet.create({
   },
   welcomeSection: {
     alignItems: 'center',
-    marginBottom: theme.spacing.xs,
-  },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.xs,
-  },
-  welcomeSubtitle: {
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text.secondary,
-  },
-  middleSection: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    paddingTop: theme.spacing.xl,
-  },
-  inputContainer: {
     marginBottom: theme.spacing.lg,
   },
-  form: {
-    width: '100%',
+  welcomeTitle: {
+    fontSize: 20,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+    letterSpacing: -0.3,
+  },
+  welcomeSubtitle: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.tertiary,
+    letterSpacing: -0.1,
+  },
+  formSection: {
+    flex: 1,
+    paddingTop: theme.spacing.md,
   },
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
+    marginTop: theme.spacing.sm,
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -298,7 +285,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weights.medium,
   },
   buttonContainer: {
-    marginTop: 0
+    marginTop: theme.spacing.lg,
   },
   bottomSection: {
     paddingBottom: theme.spacing.xxl,

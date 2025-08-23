@@ -14,41 +14,49 @@ const GetStartedScreen: React.FC<StackScreenProps<'GetStarted'>> = ({ navigation
       <View style={styles.content}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          {/* Stats Badge - Top Left */}
-          <View style={styles.statsBadge}>
-            <Text style={styles.statsNumber}>70K+</Text>
-            <Text style={styles.statsLabel}>Members</Text>
+          {/* Floating Elements */}
+          <View style={styles.floatingElement1}>
+            <Text style={styles.floatingIcon}>✨</Text>
           </View>
-
-          {/* Main Character Circle with Arc Background */}
-          <View style={styles.characterContainer}>
-            {/* Background Arc */}
-            <View style={styles.arcBackground}>
-              <View style={styles.characterCircle}>
-                <Text style={styles.characterEmoji}>🧘‍♀️</Text>
-              </View>
+          <View style={styles.floatingElement2}>
+            <Text style={styles.floatingIcon}>🤍</Text>
+          </View>
+          <View style={styles.floatingElement3}>
+            <Text style={styles.floatingIcon}>🌿</Text>
+          </View>
+          
+          {/* Main Hero Card */}
+          <View style={styles.heroCard}>
+            <View style={styles.iconGradient}>
+              <Text style={styles.heroIcon}>🧘‍♀️</Text>
             </View>
+            <Text style={styles.heroTagline}>Innerlight</Text>
+            <Text style={styles.heroSubtagline}>Community</Text>
           </View>
-
-          {/* Stats Badge - Bottom Right */}
-          <View style={styles.sessionsStats}>
-            <Text style={styles.sessionsNumber}>700K+</Text>
-            <Text style={styles.sessionsLabel}>Sessions</Text>
-          </View>
-
-          {/* Decorative Dots */}
-          <View style={styles.dot1} />
-          <View style={styles.dot2} />
-          <View style={styles.dot3} />
         </View>
 
         {/* Content Section */}
         <View style={styles.contentSection}>
-          <Text style={styles.title}>Everything you need{'\n'}in one app</Text>
+          <Text style={styles.title}>Begin Your Wellness Journey</Text>
           <Text style={styles.subtitle}>
-            Create your wellness journey and connect with{'\n'}
-            the top practitioners in the world
+            Connect with healers, join a caring community, and transform your life through personalized wellness experiences
           </Text>
+          
+          {/* Feature highlights */}
+          <View style={styles.featuresContainer}>
+            <View style={styles.feature}>
+              <Text style={styles.featureIcon}>🌟</Text>
+              <Text style={styles.featureText}>Personalized Care</Text>
+            </View>
+            <View style={styles.feature}>
+              <Text style={styles.featureIcon}>🤝</Text>
+              <Text style={styles.featureText}>Community Support</Text>
+            </View>
+            <View style={styles.feature}>
+              <Text style={styles.featureIcon}>🌱</Text>
+              <Text style={styles.featureText}>Growth Journey</Text>
+            </View>
+          </View>
         </View>
 
         {/* Bottom Section */}
@@ -56,12 +64,6 @@ const GetStartedScreen: React.FC<StackScreenProps<'GetStarted'>> = ({ navigation
           <TouchableOpacity style={styles.getStartedButton} onPress={handleGetStarted}>
             <Text style={styles.getStartedText}>Get Started</Text>
           </TouchableOpacity>
-          
-          {/* Progress Indicator */}
-          <View style={styles.progressContainer}>
-            <View style={[styles.progressDot, styles.activeDot]} />
-            <View style={styles.progressLine} />
-          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -75,171 +77,153 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xxl,
-    paddingBottom: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
   },
   heroSection: {
-    flex: 1.5,
+    flex: 1.2,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: theme.spacing.xl,
     position: 'relative',
   },
-  statsBadge: {
+  floatingElement1: {
     position: 'absolute',
-    top: 40,
+    top: 20,
+    right: 30,
+    backgroundColor: theme.colors.white,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.soft,
+  },
+  floatingElement2: {
+    position: 'absolute',
+    bottom: 40,
     left: 20,
     backgroundColor: theme.colors.white,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
-    ...theme.shadows.medium,
-    alignItems: 'center',
-  },
-  statsNumber: {
-    fontSize: 20,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text.primary,
-  },
-  statsLabel: {
-    fontSize: 12,
-    color: theme.colors.text.secondary,
-    marginTop: 2,
-  },
-  characterContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  arcBackground: {
-    width: 200,
-    height: 200,
-    borderRadius: 120,
-    borderWidth: 20,
-    borderColor: theme.colors.primary,
-    borderTopColor: 'transparent',
-    borderLeftColor: 'transparent',
-    borderBottomColor: 'transparent',
-    transform: [{ rotate: '-45deg' }],
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    ...theme.shadows.soft,
   },
-  characterCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: theme.colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    transform: [{ rotate: '45deg' }],
-    ...theme.shadows.medium,
-  },
-  characterEmoji: {
-    fontSize: 50,
-  },
-  sessionsStats: {
+  floatingElement3: {
     position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: theme.colors.white,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
-    ...theme.shadows.medium,
-    alignItems: 'center',
-  },
-  sessionsNumber: {
-    fontSize: 18,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text.primary,
-  },
-  sessionsLabel: {
-    fontSize: 11,
-    color: theme.colors.text.secondary,
-    marginTop: 2,
-  },
-  dot1: {
-    position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#22c55e',
     top: 80,
-    right: 60,
-  },
-  dot2: {
-    position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#ef4444',
-    bottom: 120,
     left: 40,
+    backgroundColor: theme.colors.white,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.soft,
   },
-  dot3: {
-    position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#06b6d4',
-    top: 180,
-    right: 30,
+  floatingIcon: {
+    fontSize: 16,
+  },
+  heroCard: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.borderRadius.xxl,
+    padding: theme.spacing.xl,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
+    ...theme.shadows.soft,
+    width: '85%',
+    maxWidth: 240,
+  },
+  iconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.primaryGhost,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  heroIcon: {
+    fontSize: 36,
+  },
+  heroTagline: {
+    fontSize: 22,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+    marginBottom: theme.spacing.xs,
+  },
+  heroSubtagline: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.primary,
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
   contentSection: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.sm,
   },
   title: {
-    fontSize: 25,
-    fontWeight: theme.typography.weights.bold,
+    fontSize: 24,
+    fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
     textAlign: 'center',
-    marginBottom: theme.spacing.lg,
-    lineHeight: 35,
+    marginBottom: theme.spacing.md,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.tertiary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.xs,
+  },
+  featuresContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    paddingHorizontal: theme.spacing.sm,
+  },
+  feature: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  featureIcon: {
+    fontSize: 20,
+    marginBottom: theme.spacing.xs,
+  },
+  featureText: {
+    fontSize: 11,
     color: theme.colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 24,
+    fontWeight: theme.typography.weights.medium,
   },
   bottomSection: {
     alignItems: 'center',
   },
   getStartedButton: {
     backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.xxl,
-    paddingVertical: theme.spacing.lg,
-    borderRadius: theme.borderRadius.xl,
-    ...theme.shadows.medium,
-    marginBottom: theme.spacing.xl,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.lg,
+    width: '100%',
+    alignItems: 'center',
+    ...theme.shadows.elegant,
+    minHeight: 44,
   },
   getStartedText: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.semibold,
     color: theme.colors.white,
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.border.light,
-  },
-  activeDot: {
-    backgroundColor: theme.colors.primary,
-  },
-  progressLine: {
-    width: 40,
-    height: 4,
-    backgroundColor: theme.colors.text.primary,
-    marginLeft: theme.spacing.sm,
-    borderRadius: 2,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+    letterSpacing: -0.1,
   },
 });
 

@@ -62,8 +62,55 @@ class ApiService {
     }
   }
 
+  async saveAuthToken(token: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem('userToken', token);
+    } catch (error) {
+      console.error('Error saving auth token:', error);
+      throw error;
+    }
+  }
+
+  async removeAuthToken(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem('userToken');
+    } catch (error) {
+      console.error('Error removing auth token:', error);
+      throw error;
+    }
+  }
+
+  // Debug method to check AsyncStorage contents
+  async debugTokenStorage(): Promise<void> {
+    try {
+      const allKeys = await AsyncStorage.getAllKeys();
+      console.log('🔍 All AsyncStorage keys:', allKeys);
+      
+      const token = await AsyncStorage.getItem('userToken');
+      console.log('🔍 userToken value:', token);
+      
+      // Check if there are other token-related keys
+      const tokenKeys = allKeys.filter(key => key.toLowerCase().includes('token'));
+      console.log('🔍 Token-related keys:', tokenKeys);
+      
+      for (const key of tokenKeys) {
+        const value = await AsyncStorage.getItem(key);
+        console.log(`🔍 ${key}:`, value);
+      }
+    } catch (error) {
+      console.error('Error debugging token storage:', error);
+    }
+  }
+
   async request<T = any>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     const token = await this.getAuthToken();
+    
+    // Debug: Log token status
+    console.log('🔑 Token from storage:', token ? 'Found' : 'Not found');
+    if (token) {
+      console.log('🔑 Token length:', token.length);
+      console.log('🔑 Token preview:', token.substring(0, 20) + '...');
+    }
     
     const defaultHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -71,6 +118,9 @@ class ApiService {
 
     if (token) {
       defaultHeaders.Authorization = `Bearer ${token}`;
+      console.log('🔑 Authorization header set:', `Bearer ${token.substring(0, 20)}...`);
+    } else {
+      console.log('🔑 No token found, making unauthenticated request');
     }
 
     const config: RequestInit = {
@@ -100,10 +150,14 @@ class ApiService {
   async requestFormData<T = any>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
     const token = await this.getAuthToken();
     
+    // Debug: Log token status for form data requests
+    console.log('🔑 FormData Token from storage:', token ? 'Found' : 'Not found');
+    
     const headers: Record<string, string> = {};
 
     if (token) {
       headers.Authorization = `Bearer ${token}`;
+      console.log('🔑 FormData Authorization header set:', `Bearer ${token.substring(0, 20)}...`);
     }
 
     const config: RequestInit = {
@@ -153,15 +207,36 @@ class ApiService {
 
   // Auth endpoints
   async register(data: RegisterRequest): Promise<ApiResponse<LoginResponse>> {
-    return this.post<LoginResponse>('/auth/register', data);
+    const response = await this.post<LoginResponse>('/auth/register', data);
+    
+    // Save token to AsyncStorage after successful registration
+    if (response.success && response.data?.token) {
+      await this.saveAuthToken(response.data.token);
+    }
+    
+    return response;
   }
 
   async login(email: string, password: string): Promise<ApiResponse<LoginResponse>> {
-    return this.post<LoginResponse>('/auth/login', { email, password });
+    const response = await this.post<LoginResponse>('/auth/login', { email, password });
+    
+    // Save token to AsyncStorage after successful login
+    if (response.success && response.data?.token) {
+      await this.saveAuthToken(response.data.token);
+    }
+    
+    return response;
   }
 
   async logout(): Promise<ApiResponse<null>> {
-    return this.post<null>('/auth/logout');
+    const response = await this.post<null>('/auth/logout');
+    
+    // Remove token from AsyncStorage after logout
+    if (response.success) {
+      await this.removeAuthToken();
+    }
+    
+    return response;
   }
 
   async getMe(): Promise<ApiResponse<User>> {
@@ -169,7 +244,14 @@ class ApiService {
   }
 
   async refreshToken(): Promise<ApiResponse<{ token: string }>> {
-    return this.post<{ token: string }>('/auth/refresh');
+    const response = await this.post<{ token: string }>('/auth/refresh');
+    
+    // Save new token to AsyncStorage after successful refresh
+    if (response.success && response.data?.token) {
+      await this.saveAuthToken(response.data.token);
+    }
+    
+    return response;
   }
 
   async forgotPassword(email: string): Promise<ApiResponse<null>> {

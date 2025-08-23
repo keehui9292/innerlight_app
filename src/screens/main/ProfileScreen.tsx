@@ -185,57 +185,61 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
         }
       >
         <View style={styles.content}>
-          {/* Header */}
-          <Text style={styles.title}>Profile</Text>
-
-          {/* User Profile Card */}
-          <View style={styles.profileCard}>
-            <View style={styles.profileHeader}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {getInitials(currentUser?.name)}
-                </Text>
+          {/* Hero Profile Section */}
+          <View style={styles.heroSection}>
+            <View style={styles.profileCard}>
+              <View style={styles.avatarContainer}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {getInitials(currentUser?.name)}
+                  </Text>
+                </View>
               </View>
               
-              <View style={styles.userInfo}>
-                <Text style={styles.userName}>
-                  {currentUser?.name || 'Member Name'}
-                </Text>
-                <Text style={styles.memberSince}>
-                  Member since {getMemberSince()}
-                </Text>
-                {currentUser?.referral_code && (
-                  <TouchableOpacity 
-                    onPress={copyReferralCode}
-                    style={styles.referralCodeContainer}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.referralCodeLabel}>
-                      Referral Code: 
-                    </Text>
+              <Text style={styles.userName}>
+                {currentUser?.name || 'Member Name'}
+              </Text>
+              
+              <Text style={styles.memberSince}>
+                Member since {getMemberSince()}
+              </Text>
+              
+              {currentUser?.referral_code && (
+                <TouchableOpacity 
+                  onPress={copyReferralCode}
+                  style={styles.referralCodeContainer}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.referralCodeLabel}>
+                    Referral Code
+                  </Text>
+                  <View style={styles.referralCodeBox}>
                     <Text style={styles.referralCode}>
                       {currentUser.referral_code}
                     </Text>
-                    <Copy size={14} color={theme.colors.primary} style={styles.copyIcon} />
-                  </TouchableOpacity>
-                )}
-              </View>
+                    <Copy size={16} color={theme.colors.primary} />
+                  </View>
+                </TouchableOpacity>
+              )}
             </View>
+          </View>
 
-            <View style={styles.divider} />
-
-            {/* User Information */}
-            <View style={styles.userDetails}>
+          {/* User Information */}
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Personal Information</Text>
+            <View style={styles.infoCard}>
               {userInfo.map((info, index) => {
                 const IconComponent = info.icon;
                 return (
-                  <View key={index} style={styles.detailRow}>
-                    <IconComponent size={16} color={theme.colors.text.secondary} />
-                    <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>
-                        {info.label.toUpperCase()}
+                  <View key={index} style={styles.infoRow}>
+                    <View style={styles.infoIconContainer}>
+                      <IconComponent size={20} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>
+                        {info.label}
                       </Text>
-                      <Text style={styles.detailValue}>
+                      <Text style={styles.infoValue}>
                         {info.value}
                       </Text>
                     </View>
@@ -299,22 +303,25 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
           {/* Settings Menu */}
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Settings</Text>
-            
-            {menuItems.map((item, index) => {
-              const IconComponent = item.icon;
-              return (
-                <Fragment key={index}>
+            <View style={styles.settingsCard}>
+              {menuItems.map((item, index) => {
+                const IconComponent = item.icon;
+                return (
                   <TouchableOpacity
+                    key={index}
                     onPress={item.onPress}
-                    style={styles.menuItem}
-                    activeOpacity={0.7}
+                    style={[
+                      styles.menuItem,
+                      index < menuItems.length - 1 && styles.menuItemBorder
+                    ]}
+                    activeOpacity={0.8}
                   >
                     <View style={styles.menuItemContent}>
-                      <View style={styles.menuIcon}>
-                        <IconComponent size={20} color={theme.colors.text.secondary} />
+                      <View style={styles.menuIconContainer}>
+                        <IconComponent size={22} color={theme.colors.primary} />
                       </View>
                       
-                      <View style={styles.menuText}>
+                      <View style={styles.menuTextContent}>
                         <Text style={styles.menuTitle}>
                           {item.title}
                         </Text>
@@ -323,37 +330,28 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
                         </Text>
                       </View>
                       
-                      <ChevronRight size={20} color={theme.colors.text.muted} />
+                      <ChevronRight size={20} color={theme.colors.text.tertiary} />
                     </View>
                   </TouchableOpacity>
-                  
-                  {index < menuItems.length - 1 && <View style={styles.itemSpacer} />}
-                </Fragment>
-              );
-            })}
+                );
+              })}
+            </View>
           </View>
-
-          <View style={styles.divider} />
 
           {/* Sign Out Button */}
           <TouchableOpacity
             onPress={handleLogout}
             style={styles.signOutButton}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
           >
-            <View style={styles.menuItemContent}>
-              <View style={[styles.menuIcon, styles.signOutIcon]}>
-                <LogOut size={20} color={theme.colors.error} />
+            <View style={styles.signOutContent}>
+              <View style={styles.signOutIconContainer}>
+                <LogOut size={22} color={theme.colors.error} />
               </View>
               
-              <View style={styles.menuText}>
-                <Text style={styles.signOutTitle}>
-                  Sign Out
-                </Text>
-                <Text style={styles.signOutDescription}>
-                  Sign out of your account
-                </Text>
-              </View>
+              <Text style={styles.signOutTitle}>
+                Sign Out
+              </Text>
             </View>
           </TouchableOpacity>
 
@@ -385,29 +383,24 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
   },
-  title: {
-    fontSize: theme.typography.sizes.xl,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.primary,
+  heroSection: {
     marginBottom: theme.spacing.lg,
-    textAlign: 'center',
   },
   profileCard: {
     backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    borderRadius: theme.borderRadius.lg,
+    borderColor: theme.colors.border.subtle,
+    borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-    ...theme.shadows.light,
-  },
-  profileHeader: {
-    flexDirection: 'row',
+    ...theme.shadows.elegant,
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+    marginHorizontal: theme.spacing.xs,
+  },
+  avatarContainer: {
+    marginBottom: theme.spacing.lg,
   },
   avatar: {
     width: 80,
@@ -416,26 +409,28 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: theme.spacing.md,
+    ...theme.shadows.elegant,
   },
   avatarText: {
     color: theme.colors.white,
-    fontSize: theme.typography.sizes.xl,
-    fontWeight: theme.typography.weights.bold,
-  },
-  userInfo: {
-    flex: 1,
+    fontSize: 28,
+    fontWeight: theme.typography.weights.medium,
+    letterSpacing: -0.3,
   },
   userName: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.bold,
+    fontSize: 22,
+    fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xs,
+    letterSpacing: -0.3,
   },
   memberSince: {
     fontSize: theme.typography.sizes.sm,
-    color: theme.colors.primary,
-    marginTop: theme.spacing.xs,
-    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.tertiary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.md,
+    letterSpacing: -0.1,
   },
   memberType: {
     fontSize: theme.typography.sizes.sm,
@@ -443,27 +438,33 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
   },
   referralCodeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    backgroundColor: '#f9f8f7',
-    borderRadius: theme.borderRadius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
+    width: '100%',
   },
   referralCodeLabel: {
-    fontSize: theme.typography.sizes.xs,
+    fontSize: theme.typography.sizes.sm,
     color: theme.colors.text.secondary,
     fontWeight: theme.typography.weights.medium,
+    textAlign: 'center',
+    marginBottom: theme.spacing.md,
+    letterSpacing: 0.2,
+  },
+  referralCodeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.primaryGhost,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
   },
   referralCode: {
-    fontSize: theme.typography.sizes.xs,
+    fontSize: theme.typography.sizes.lg,
     color: theme.colors.primary,
-    fontWeight: theme.typography.weights.bold,
-    marginLeft: theme.spacing.xs,
-    flex: 1,
+    fontWeight: theme.typography.weights.medium,
+    letterSpacing: 2,
   },
   copyIcon: {
     marginLeft: theme.spacing.xs,
@@ -483,27 +484,49 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text.secondary,
   },
-  userDetails: {
-    gap: theme.spacing.md,
+  infoSection: {
+    marginBottom: theme.spacing.lg,
   },
-  detailRow: {
+  infoCard: {
+    backgroundColor: theme.colors.white,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    ...theme.shadows.elegant,
+    marginHorizontal: theme.spacing.xs,
+  },
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.subtle,
   },
-  detailContent: {
+  infoIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primaryGhost,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
+  },
+  infoContent: {
     flex: 1,
   },
-  detailLabel: {
-    fontSize: theme.typography.sizes.xs,
-    color: theme.colors.text.muted,
-    fontWeight: theme.typography.weights.medium,
-    textTransform: 'uppercase',
-  },
-  detailValue: {
-    fontSize: theme.typography.sizes.sm,
+  infoLabel: {
+    fontSize: theme.typography.sizes.md,
     color: theme.colors.text.secondary,
-    marginTop: theme.spacing.xs,
+    fontWeight: theme.typography.weights.medium,
+    marginBottom: theme.spacing.sm,
+    letterSpacing: 0.2,
+  },
+  infoValue: {
+    fontSize: theme.typography.sizes.lg,
+    color: theme.colors.text.primary,
+    fontWeight: theme.typography.weights.regular,
+    letterSpacing: -0.2,
   },
   courseSection: {
     marginBottom: theme.spacing.lg,
@@ -542,54 +565,58 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.semibold,
+    fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.md,
+    letterSpacing: -0.2,
   },
-  menuItem: {
+  settingsCard: {
     backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
+    borderColor: theme.colors.border.subtle,
     borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    ...theme.shadows.light,
+    overflow: 'hidden',
+    ...theme.shadows.elegant,
+    marginHorizontal: theme.spacing.xs,
+  },
+  menuItem: {
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+  },
+  menuItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.subtle,
   },
   menuItemContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
   },
-  menuIcon: {
+  menuIconContainer: {
     width: 40,
     height: 40,
-    backgroundColor: theme.colors.border.light,
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primaryGhost,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: theme.spacing.md,
   },
   signOutIcon: {
     backgroundColor: '#fecaca',
   },
-  menuText: {
+  menuTextContent: {
     flex: 1,
   },
   menuTitle: {
     fontSize: theme.typography.sizes.md,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+    letterSpacing: -0.1,
   },
   menuDescription: {
     fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text.secondary,
-  },
-  signOutTitle: {
-    fontSize: theme.typography.sizes.md,
-    fontWeight: theme.typography.weights.medium,
-    color: theme.colors.error,
-  },
-  signOutDescription: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.error,
+    color: theme.colors.text.tertiary,
+    lineHeight: 18,
   },
   itemSpacer: {
     height: theme.spacing.sm,
@@ -600,7 +627,23 @@ const styles = StyleSheet.create({
     borderColor: '#fecaca',
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
-    ...theme.shadows.light,
+    marginTop: theme.spacing.md,
+    marginHorizontal: theme.spacing.xs,
+    ...theme.shadows.elegant,
+  },
+  signOutContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signOutIconContainer: {
+    marginRight: theme.spacing.md,
+  },
+  signOutTitle: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.error,
+    letterSpacing: -0.2,
   },
   appInfo: {
     backgroundColor: theme.colors.surface,

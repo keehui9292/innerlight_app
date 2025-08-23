@@ -25,6 +25,7 @@
     "@react-navigation/stack": "^7.4.7",
     "babel-plugin-module-resolver": "^5.0.2",
     "expo": "~53.0.20",
+    "expo-calendar": "~14.1.4",
     "expo-status-bar": "~2.2.3",
     "lucide-react-native": "^0.539.0",
     "nativewind": "^4.1.23",

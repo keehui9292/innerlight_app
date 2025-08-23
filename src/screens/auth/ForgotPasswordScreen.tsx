@@ -87,68 +87,61 @@ const ForgotPasswordScreen: React.FC<StackScreenProps<'ForgotPassword'>> = ({ na
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.content}>
-          {/* Top Section - Header */}
-          <View style={styles.topSection}>
-            <View style={styles.header}>
-              <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-                <ArrowLeft size={24} color={theme.colors.text.primary} />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Reset Password</Text>
-              <View style={styles.placeholder} />
-            </View>
-
-            
-            {!emailSent && (
-              <View style={styles.welcomeSection}>
-                <Text style={styles.welcomeTitle}>Forgot Password?</Text>
-                <Text style={styles.welcomeSubtitle}>No worries! Enter your email address and we'll send you a link to reset your password.</Text>
-              </View>
-            )}
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+              <ArrowLeft size={20} color={theme.colors.text.primary} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Reset Password</Text>
+            <View style={styles.placeholder} />
           </View>
 
+          {!emailSent && (
+            <View style={styles.welcomeSection}>
+              <Text style={styles.welcomeTitle}>Forgot Password?</Text>
+              <Text style={styles.welcomeSubtitle}>No worries! Enter your email address and we'll send you a link to reset your password.</Text>
+            </View>
+          )}
+
           {!emailSent ? (
-            // Middle Section - Form
-            <View style={styles.middleSection}>
-              <View style={styles.form}>
-                <View style={styles.inputContainer}>
-                  <FormInput
-                    label=""
-                    placeholder="Email"
-                    value={formData.email}
-                    onChangeText={(value) => handleInputChange('email', value)}
-                    error={errors.email}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    required
-                  />
-                </View>
+            // Form Section
+            <View style={styles.formSection}>
+              <FormInput
+                label=""
+                placeholder="Email"
+                value={formData.email}
+                onChangeText={(value) => handleInputChange('email', value)}
+                error={errors.email}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                required
+              />
 
-                <View style={styles.buttonContainer}>
-                  <CustomButton
-                    title="Send Reset Link"
-                    onPress={handleForgotPassword}
-                    loading={loading}
-                    disabled={loading}
-                    size="lg"
-                    colorScheme="primary"
-                  />
-                </View>
+              <View style={styles.buttonContainer}>
+                <CustomButton
+                  title="Send Reset Link"
+                  onPress={handleForgotPassword}
+                  loading={loading}
+                  disabled={loading}
+                  size="lg"
+                  colorScheme="primary"
+                />
+              </View>
 
-                <View style={styles.footer}>
-                  <Text style={styles.footerText}>
-                    Remember your password? 
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>
+                  Remember your password? 
+                </Text>
+                <TouchableOpacity onPress={handleBackToLogin}>
+                  <Text style={styles.linkText}>
+                    Sign In
                   </Text>
-                  <TouchableOpacity onPress={handleBackToLogin}>
-                    <Text style={styles.linkText}>
-                      Sign In
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
           ) : (
-            // Success state - Middle Section
-            <View style={styles.middleSection}>
+            // Success Section
+            <View style={styles.successSection}>
               <View style={styles.successContainer}>
                 <View style={styles.iconContainer}>
                   <CheckCircle size={40} color={theme.colors.success} />
@@ -227,23 +220,21 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  topSection: {
-    paddingTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
   },
   backButton: {
-    padding: theme.spacing.sm,
+    padding: theme.spacing.xs,
   },
   headerTitle: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.semibold,
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
   },
   placeholder: {
@@ -251,33 +242,33 @@ const styles = StyleSheet.create({
   },
   welcomeSection: {
     alignItems: 'center',
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.lg,
   },
   welcomeTitle: {
-    fontSize: 28,
-    fontWeight: theme.typography.weights.bold,
+    fontSize: 20,
+    fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.xs,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   welcomeSubtitle: {
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text.secondary,
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.tertiary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 20,
+    paddingHorizontal: theme.spacing.sm,
   },
-  middleSection: {
+  formSection: {
     flex: 1,
-    justifyContent: 'flex-start',
-    paddingTop: theme.spacing.xl,
+    paddingTop: theme.spacing.md,
   },
-  inputContainer: {
-    marginBottom: theme.spacing.lg,
-  },
-  form: {
-    width: '100%',
+  successSection: {
+    flex: 1,
+    paddingTop: theme.spacing.md,
   },
   buttonContainer: {
+    marginTop: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
   },
   footer: {
@@ -286,14 +277,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     color: theme.colors.text.secondary,
     marginRight: theme.spacing.sm,
   },
   linkText: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     color: theme.colors.primary,
-    fontWeight: theme.typography.weights.semibold,
+    fontWeight: theme.typography.weights.medium,
   },
   successContainer: {
     alignItems: 'center',

@@ -64,36 +64,36 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-          {/* Welcome Header */}
-          <View style={styles.header}>
-            <Text style={styles.greeting}>
-              {getGreeting()},
-            </Text>
-            <Text style={styles.welcomeTitle}>
-              {user?.name || 'Welcome'} 👋
-            </Text>
-            <Text style={styles.subtitle}>
-              How can we help you today?
-            </Text>
+          {/* Hero Section */}
+          <View style={styles.heroSection}>
+            <View style={styles.greetingContainer}>
+              <Text style={styles.greeting}>
+                {getGreeting()}
+              </Text>
+              <Text style={styles.userName}>
+                {user?.name || 'Welcome'}
+              </Text>
+            </View>
+            
+            <View style={styles.heroCard}>
+              <View style={styles.heroContent}>
+                <Text style={styles.heroTitle}>
+                  Your Wellness Journey
+                </Text>
+                <Text style={styles.heroSubtitle}>
+                  Transform your life with personalized care and community support
+                </Text>
+              </View>
+            </View>
           </View>
 
-          {/* Quick Stats Card */}
-          <View style={styles.welcomeCard}>
-            <Text style={styles.cardTitle}>
-              Welcome to Innerlight Community
-            </Text>
-            <Text style={styles.cardText}>
-              Your wellness journey starts here. Book appointments, manage your schedule, and stay connected with our community.
-            </Text>
-          </View>
-
-          {/* Quick Actions */}
+          {/* Quick Actions Grid */}
           <View style={styles.actionsSection}>
             <Text style={styles.sectionTitle}>
               Quick Actions
             </Text>
             
-            <View style={styles.actionsList}>
+            <View style={styles.actionsGrid}>
               {quickActions.map((action, index) => {
                 const IconComponent = action.icon;
                 return (
@@ -101,22 +101,18 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
                     key={index}
                     onPress={action.onPress}
                     style={styles.actionCard}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
                   >
-                    <View style={styles.actionContent}>
-                      <View style={[styles.iconContainer, { backgroundColor: action.bgColor }]}>
-                        <IconComponent size={24} color={action.color} />
-                      </View>
-                      
-                      <View style={styles.actionText}>
-                        <Text style={styles.actionTitle}>
-                          {action.title}
-                        </Text>
-                        <Text style={styles.actionDescription}>
-                          {action.description}
-                        </Text>
-                      </View>
+                    <View style={styles.actionIconContainer}>
+                      <IconComponent size={18} color={theme.colors.primary} />
                     </View>
+                    
+                    <Text style={styles.actionTitle}>
+                      {action.title}
+                    </Text>
+                    <Text style={styles.actionDescription}>
+                      {action.description}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -157,91 +153,108 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
   },
-  header: {
+  heroSection: {
+    marginBottom: theme.spacing.xl,
+  },
+  greetingContainer: {
+    alignItems: 'center',
     marginBottom: theme.spacing.lg,
   },
   greeting: {
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.xs,
-  },
-  welcomeTitle: {
-    fontSize: theme.typography.sizes.xl,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.primary,
-    marginBottom: theme.spacing.sm,
-  },
-  subtitle: {
     fontSize: theme.typography.sizes.md,
-    color: theme.colors.text.secondary,
+    color: theme.colors.text.tertiary,
+    marginBottom: theme.spacing.xs,
+    letterSpacing: -0.1,
   },
-  welcomeCard: {
-    backgroundColor: '#f9f8f7',
-    borderRadius: theme.borderRadius.lg,
+  userName: {
+    fontSize: 24,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    letterSpacing: -0.5,
+    textAlign: 'center',
+  },
+  heroCard: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    ...theme.shadows.light,
+    borderColor: theme.colors.border.subtle,
+    ...theme.shadows.elegant,
+    marginHorizontal: theme.spacing.xs,
   },
-  cardTitle: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.semibold,
-    color: theme.colors.primary,
+  heroContent: {
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  heroTitle: {
+    fontSize: 20,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
     marginBottom: theme.spacing.sm,
+    textAlign: 'center',
+    letterSpacing: -0.3,
   },
-  cardText: {
+  heroSubtitle: {
     fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text.secondary,
+    color: theme.colors.text.tertiary,
+    textAlign: 'center',
     lineHeight: 20,
+    paddingHorizontal: theme.spacing.sm,
   },
   actionsSection: {
     marginBottom: theme.spacing.lg,
   },
   sectionTitle: {
     fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.semibold,
+    fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.md,
+    letterSpacing: -0.2,
   },
-  actionsList: {
-    gap: theme.spacing.md,
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+    justifyContent: 'space-between',
   },
   actionCard: {
     backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
+    borderColor: theme.colors.border.default,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
-    ...theme.shadows.light,
-  },
-  actionContent: {
-    flexDirection: 'row',
+    ...theme.shadows.elegant,
     alignItems: 'center',
+    width: '48%',
+    minHeight: 100,
+    justifyContent: 'center',
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.borderRadius.lg,
+  actionIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primaryGhost,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: theme.spacing.md,
-  },
-  actionText: {
-    flex: 1,
+    marginBottom: theme.spacing.sm,
   },
   actionTitle: {
-    fontSize: theme.typography.sizes.md,
-    fontWeight: theme.typography.weights.semibold,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.xs,
+    textAlign: 'center',
+    letterSpacing: -0.2,
   },
   actionDescription: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text.secondary,
+    fontSize: 11,
+    color: theme.colors.text.tertiary,
+    textAlign: 'center',
+    lineHeight: 14,
   },
   activitySection: {
     marginBottom: theme.spacing.lg,

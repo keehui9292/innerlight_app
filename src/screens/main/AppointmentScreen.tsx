@@ -13,7 +13,7 @@ interface StatusColors {
   dot: string;
 }
 
-const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigation }) => {
+const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigation, route }) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -22,18 +22,41 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
     fetchAppointments();
   }, []);
 
+  // Listen for navigation focus to refresh data when returning from form
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Check if we should refresh (e.g., returning from appointment form)
+      if (route?.params?.refresh) {
+        fetchAppointments();
+        // Clear the refresh parameter
+        navigation.setParams({ refresh: undefined });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, route?.params?.refresh]);
+
   const fetchAppointments = async (): Promise<void> => {
     try {
       setLoading(true);
       const response: any = await ApiService.getAppointments();
       
       if (response.success && response.data) {
-        // Handle paginated response format
-        const appointmentsArray = Array.isArray(response.data) 
-          ? response.data 
-          : response.data.data || [];
+        // Handle paginated response format - data is inside response.data.data
+        const appointmentsArray = response.data.data || [];
         
-        setAppointments(appointmentsArray);
+        // Map the appointments to include backward-compatible fields
+        const mappedAppointments = appointmentsArray.map((appointment: any) => ({
+          ...appointment,
+          // Add backward-compatible fields
+          title: appointment.appointment_form?.name || 'Appointment',
+          description: appointment.form_data?.service_type || appointment.appointment_form?.description || '',
+          date: appointment.form_data?.appointment_date || appointment.appointment_date?.split('T')[0] || '',
+          time: appointment.form_data?.appointment_time || appointment.appointment_time?.split('T')[1]?.substring(0, 5) || '',
+          provider: appointment.form_data?.full_name || 'Provider',
+        }));
+        
+        setAppointments(mappedAppointments);
       } else {
         // Set empty array if API call fails
         setAppointments([]);
@@ -73,7 +96,18 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
   };
 
   const formatTime = (timeString: string): string => {
-    const [hours, minutes] = timeString.split(':');
+    if (!timeString) return '';
+    
+    // Handle both HH:mm format and full timestamp
+    let timeToFormat = timeString;
+    if (timeString.includes('T')) {
+      // Extract time from timestamp
+      timeToFormat = timeString.split('T')[1]?.substring(0, 5) || timeString;
+    }
+    
+    const [hours, minutes] = timeToFormat.split(':');
+    if (!hours || !minutes) return timeString;
+    
     const date = new Date();
     date.setHours(parseInt(hours), parseInt(minutes));
     
@@ -87,13 +121,29 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
   const getStatusColor = (status: string): StatusColors => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
-        return { bg: '#dcfce7', text: '#15803d', dot: '#16a34a' };
+        return { 
+          bg: theme.colors.primaryGhost, 
+          text: theme.colors.success, 
+          dot: theme.colors.success 
+        };
       case 'pending':
-        return { bg: '#fef3c7', text: '#d97706', dot: '#f59e0b' };
+        return { 
+          bg: theme.colors.primarySoft, 
+          text: theme.colors.primary, 
+          dot: theme.colors.primary 
+        };
       case 'cancelled':
-        return { bg: '#fecaca', text: '#dc2626', dot: '#ef4444' };
+        return { 
+          bg: '#fef2f0', 
+          text: theme.colors.error, 
+          dot: theme.colors.error 
+        };
       default:
-        return { bg: '#f3f4f6', text: '#374151', dot: '#6b7280' };
+        return { 
+          bg: theme.colors.border.subtle, 
+          text: theme.colors.text.tertiary, 
+          dot: theme.colors.text.tertiary 
+        };
     }
   };
 
@@ -119,12 +169,13 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>
-            My Appointments
-          </Text>
-          <Text style={styles.appointmentCount}>
-            {appointments.length} appointment{appointments.length !== 1 ? 's' : ''}
-          </Text>
+          <View style={styles.titleSection}>
+            <Text style={styles.title}>Appointments</Text>
+            <Text style={styles.subtitle}>Manage your schedule</Text>
+            <Text style={styles.appointmentCount}>
+              {appointments.length} {appointments.length === 1 ? 'appointment' : 'appointments'}
+            </Text>
+          </View>
         </View>
 
         <ScrollView 
@@ -137,20 +188,22 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
           {appointments.length === 0 ? (
             // Empty state
             <View style={styles.emptyContainer}>
-              <Calendar size={64} color={theme.colors.text.light} />
+              <View style={styles.emptyIcon}>
+                <Calendar size={48} color={theme.colors.primary} />
+              </View>
               <Text style={styles.emptyTitle}>
-                No appointments scheduled
+                Your schedule awaits
               </Text>
               <Text style={styles.emptySubtitle}>
-                Tap the + button to book your first appointment with our wellness team
+                Begin your wellness journey by booking your first appointment. Our team is ready to support you.
               </Text>
               
               <View style={styles.emptyButtonContainer}>
                 <CustomButton
-                  title="Book First Appointment"
+                  title="Book Appointment"
                   onPress={handleBookAppointment}
-                  size="md"
                   colorScheme="primary"
+                  fullWidth
                 />
               </View>
             </View>
@@ -164,60 +217,65 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
                   <TouchableOpacity
                     key={appointment.id}
                     style={styles.appointmentCard}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
+                    onPress={() => navigation.navigate('AppointmentDetails', { appointment })}
                   >
-                    <View style={styles.cardContent}>
-                      {/* Header */}
-                      <View style={styles.cardHeader}>
-                        <View style={styles.appointmentInfo}>
-                          <Text style={styles.appointmentTitle}>
-                            {appointment.title}
-                          </Text>
-                          <Text style={styles.appointmentDescription}>
-                            {appointment.description}
-                          </Text>
-                        </View>
-                        
-                        <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
-                          <View style={[styles.statusDot, { backgroundColor: statusColors.dot }]} />
-                          <Text style={[styles.statusText, { color: statusColors.text }]}>
-                            {appointment.status}
-                          </Text>
-                        </View>
+                    {/* Header with status badge */}
+                    <View style={styles.cardHeader}>
+                      <View style={styles.appointmentInfo}>
+                        <Text style={styles.appointmentTitle}>
+                          {appointment.title || appointment.appointment_form?.name || 'Appointment'}
+                        </Text>
+                        <Text style={styles.appointmentDescription}>
+                          {appointment.description || appointment.form_data?.service_type || ''}
+                        </Text>
                       </View>
+                      
+                      <View style={[
+                        styles.statusBadge, 
+                        { 
+                          backgroundColor: statusColors.bg,
+                          borderColor: statusColors.text + '20'
+                        }
+                      ]}>
+                        <View style={[styles.statusDot, { backgroundColor: statusColors.dot }]} />
+                        <Text style={[styles.statusText, { color: statusColors.text }]}>
+                          {appointment.status}
+                        </Text>
+                      </View>
+                    </View>
 
-                      {/* Details */}
-                      <View style={styles.detailsContainer}>
+                    {/* Details */}
+                    <View style={styles.detailsContainer}>
+                      <View style={styles.detailRow}>
+                        <Calendar size={14} color={theme.colors.text.secondary} />
+                        <Text style={styles.detailText}>
+                          {formatDate(appointment.date || appointment.form_data?.appointment_date || '')}
+                        </Text>
+                        <View style={styles.detailSeparator} />
+                        <Clock size={14} color={theme.colors.text.secondary} />
+                        <Text style={styles.detailText}>
+                          {formatTime(appointment.time || appointment.form_data?.appointment_time || '')}
+                        </Text>
+                      </View>
+                      
+                      {(appointment.form_data?.full_name || appointment.provider) && (
                         <View style={styles.detailRow}>
-                          <Calendar size={16} color={theme.colors.text.secondary} />
+                          <User size={14} color={theme.colors.text.secondary} />
                           <Text style={styles.detailText}>
-                            {formatDate(appointment.date)}
-                          </Text>
-                          <View style={styles.detailSeparator} />
-                          <Clock size={16} color={theme.colors.text.secondary} />
-                          <Text style={styles.detailText}>
-                            {formatTime(appointment.time)}
+                            {appointment.form_data?.full_name || appointment.provider}
                           </Text>
                         </View>
-                        
-                        {appointment.provider && (
-                          <View style={styles.detailRow}>
-                            <User size={16} color={theme.colors.text.secondary} />
-                            <Text style={styles.detailText}>
-                              {appointment.provider}
-                            </Text>
-                          </View>
-                        )}
+                      )}
 
-                        {appointment.location && (
-                          <View style={styles.detailRow}>
-                            <MapPin size={16} color={theme.colors.text.secondary} />
-                            <Text style={styles.detailText}>
-                              {appointment.location}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
+                      {appointment.total_price && parseFloat(appointment.total_price) > 0 && (
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailText}>💰</Text>
+                          <Text style={styles.detailText}>
+                            ${parseFloat(appointment.total_price).toFixed(2)}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </TouchableOpacity>
                 );
@@ -246,23 +304,37 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    marginBottom: theme.spacing.lg,
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+  },
+  titleSection: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
   },
   title: {
-    fontSize: theme.typography.sizes.xl,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.primary,
+    fontSize: 24,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    letterSpacing: -0.3,
+    marginBottom: theme.spacing.xs,
+  },
+  subtitle: {
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.tertiary,
+    fontWeight: theme.typography.weights.regular,
   },
   appointmentCount: {
     fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text.secondary,
+    color: theme.colors.text.muted,
+    backgroundColor: theme.colors.primaryGhost,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.xxl,
+    marginTop: theme.spacing.sm,
   },
   scrollView: {
     flex: 1,
@@ -281,108 +353,135 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: theme.spacing.xxl + theme.spacing.md,
+    paddingVertical: theme.spacing.xxl,
+    paddingHorizontal: theme.spacing.xl,
+  },
+  emptyIcon: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: theme.colors.primaryGhost,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xl,
   },
   emptyTitle: {
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.text.muted,
+    fontSize: theme.typography.sizes.xl,
+    color: theme.colors.text.primary,
     textAlign: 'center',
-    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.md,
     fontWeight: theme.typography.weights.medium,
+    letterSpacing: -0.3,
   },
   emptySubtitle: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text.light,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.tertiary,
     textAlign: 'center',
-    marginTop: theme.spacing.sm,
-    lineHeight: 20,
+    lineHeight: 24,
+    marginBottom: theme.spacing.xxl,
+    maxWidth: 280,
   },
   emptyButtonContainer: {
-    marginTop: theme.spacing.lg,
+    width: '100%',
+    maxWidth: 240,
   },
   appointmentsList: {
-    paddingBottom: 80,
-    gap: theme.spacing.md,
+    paddingBottom: 100,
+    gap: theme.spacing.sm,
   },
   appointmentCard: {
     backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
+    borderColor: theme.colors.border.subtle,
     borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    ...theme.shadows.light,
+    padding: theme.spacing.md,
+    ...theme.shadows.elegant,
+    marginBottom: theme.spacing.sm,
   },
   cardContent: {
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    marginBottom: theme.spacing.sm,
   },
   appointmentInfo: {
     flex: 1,
-    marginRight: theme.spacing.md,
+    marginRight: theme.spacing.sm,
+    maxWidth: '70%',
   },
   appointmentTitle: {
     fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.semibold,
+    fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
+    letterSpacing: -0.2,
+    marginBottom: theme.spacing.xs,
+    flexShrink: 1,
   },
   appointmentDescription: {
     fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text.secondary,
-    marginTop: theme.spacing.xs,
+    color: theme.colors.text.tertiary,
+    lineHeight: 18,
   },
   statusBadge: {
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
-    borderRadius: 20,
+    borderRadius: theme.borderRadius.xl,
     flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
+    flexShrink: 0,
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     marginRight: theme.spacing.sm,
   },
   statusText: {
-    fontSize: theme.typography.sizes.xs,
+    fontSize: 10,
     fontWeight: theme.typography.weights.medium,
-    textTransform: 'capitalize',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   detailsContainer: {
+    backgroundColor: theme.colors.border.subtle,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm,
     gap: theme.spacing.sm,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
   },
   detailText: {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.text.secondary,
-    fontWeight: theme.typography.weights.medium,
+    fontWeight: theme.typography.weights.regular,
   },
   detailSeparator: {
-    width: 4,
-    height: 4,
-    backgroundColor: theme.colors.text.muted,
+    width: 3,
+    height: 3,
+    backgroundColor: theme.colors.text.light,
     borderRadius: 2,
-    marginHorizontal: theme.spacing.sm,
+    marginHorizontal: theme.spacing.md,
   },
   fab: {
     position: 'absolute',
-    bottom: theme.spacing.lg,
-    right: theme.spacing.lg,
-    width: 56,
-    height: 56,
+    bottom: theme.spacing.xl,
+    right: theme.spacing.xl,
+    width: 64,
+    height: 64,
     backgroundColor: theme.colors.primary,
-    borderRadius: 28,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    ...theme.shadows.medium,
+    ...theme.shadows.light,
+    borderWidth: 1,
+    borderColor: theme.colors.white,
   },
 });
 
