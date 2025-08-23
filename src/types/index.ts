@@ -29,11 +29,25 @@ export interface Appointment {
   status: 'confirmed' | 'pending' | 'cancelled';
   created_at: string;
   updated_at: string;
+  mou_link?: string | null;
+  mou_status?: 'pending' | 'signed' | null;
   appointment_form: {
     id: string;
     name: string;
     description?: string | null;
   };
+  mou_record?: {
+    id: string;
+    appointment_id: string;
+    mou_template_id: string;
+    user_id: string;
+    mou_data: any[];
+    signature_path?: string | null;
+    signed_at?: string | null;
+    status: 'pending' | 'signed';
+    created_at: string;
+    updated_at: string;
+  } | null;
   // Legacy fields for backward compatibility
   title?: string;
   description?: string;

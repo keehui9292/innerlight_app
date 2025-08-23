@@ -1,27 +1,84 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   Alert,
   StyleSheet,
   Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Calendar, Clock, User, Mail, Phone, FileText, Plus } from 'lucide-react-native';
+import { Calendar, Clock, User, Mail, Phone, FileText, Plus } from 'lucide-react-native';
 import CustomButton from '../../components/common/Button';
 import { theme } from '../../constants/theme';
 import { Appointment } from '../../types';
 import * as ExpoCalendar from 'expo-calendar';
 import Header from '../../components/common/Header';
+import ApiService from '../../services/apiService';
 interface AppointmentDetailsScreenProps {
   navigation: any;
   route: any;
 }
 
 const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ navigation, route }) => {
-  const { appointment } = route.params || {};
+  const { appointment: initialAppointment } = route.params || {};
+  const [appointment, setAppointment] = useState<Appointment>(initialAppointment);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Auto-refresh appointment data when mou_status is pending
+  useEffect(() => {
+    if (appointment?.mou_status === 'pending') {
+      intervalRef.current = setInterval(() => {
+        refreshAppointmentData();
+      }, 5000); // Refresh every 5 seconds
+    }
+
+    // Cleanup interval when component unmounts or mou_status changes
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [appointment?.mou_status, appointment?.id]);
+
+  // Also listen for navigation focus to refresh data when returning to screen
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (appointment?.id) {
+        refreshAppointmentData();
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, appointment?.id]);
+
+  const refreshAppointmentData = async () => {
+    if (!appointment?.id) return;
+
+    try {
+      const response: any = await ApiService.getAppointments();
+      if (response.success && response.data?.data) {
+        // Handle paginated API response structure
+        const appointmentsArray = response.data.data || [];
+        const updatedAppointment = appointmentsArray.find(
+          (apt: Appointment) => apt.id === appointment.id
+        );
+        if (updatedAppointment) {
+          setAppointment(updatedAppointment);
+          
+          // Clear interval if MOU status changed from pending
+          if (updatedAppointment.mou_status !== 'pending' && intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing appointment data:', error);
+    }
+  };
   
   if (!appointment) {
     return (
@@ -100,6 +157,60 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
         return;
       }
 
+      // Web platform - create downloadable .ics file
+      if (Platform.OS === 'web') {
+        const eventDate = new Date(appointmentDate + 'T' + appointmentTime + ':00');
+        const endDate = new Date(eventDate.getTime() + (60 * 60 * 1000)); // Add 1 hour
+        
+        // Format dates for ICS format (YYYYMMDDTHHMMSSZ)
+        const formatDateForICS = (date: Date) => {
+          return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        };
+
+        const startDateICS = formatDateForICS(eventDate);
+        const endDateICS = formatDateForICS(endDate);
+        
+        // Create ICS file content
+        const icsContent = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//Innerlight Community//EN',
+          'BEGIN:VEVENT',
+          `UID:${appointment.id}@innerlight.community`,
+          `DTSTART:${startDateICS}`,
+          `DTEND:${endDateICS}`,
+          `SUMMARY:${appointment.appointment_form?.name || appointment.title || 'Appointment'}`,
+          `DESCRIPTION:Service: ${appointment.form_data?.service_type || ''}\\nName: ${appointment.form_data?.full_name || ''}\\nEmail: ${appointment.form_data?.email || ''}\\nPhone: ${appointment.form_data?.phone || ''}\\nNotes: ${appointment.form_data?.notes || ''}`,
+          'BEGIN:VALARM',
+          'TRIGGER:-PT1H',
+          'DESCRIPTION:Appointment Reminder',
+          'ACTION:DISPLAY',
+          'END:VALARM',
+          'BEGIN:VALARM',
+          'TRIGGER:-PT15M',
+          'DESCRIPTION:Appointment Starting Soon',
+          'ACTION:DISPLAY',
+          'END:VALARM',
+          'END:VEVENT',
+          'END:VCALENDAR'
+        ].join('\\r\\n');
+
+        // Create and download the file
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `appointment-${appointmentDate}.ics`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        Alert.alert('Success', 'Calendar event file downloaded! Open it to add to your calendar.');
+        return;
+      }
+
+      // Mobile platforms - use Expo Calendar
       // Request calendar permissions
       const { status } = await ExpoCalendar.requestCalendarPermissionsAsync();
       if (status !== 'granted') {
@@ -142,8 +253,23 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
     }
   };
 
-  const handleSignMOU = () => {
-    Alert.alert('Coming Soon', 'MOU signing feature will be available soon!');
+  const handleSignMOU = async () => {
+    if (!appointment.mou_link) {
+      Alert.alert('Error', 'MOU link is not available');
+      return;
+    }
+
+    try {
+      const supported = await Linking.canOpenURL(appointment.mou_link);
+      if (supported) {
+        await Linking.openURL(appointment.mou_link);
+      } else {
+        Alert.alert('Error', 'Cannot open MOU link');
+      }
+    } catch (error) {
+      console.error('Error opening MOU link:', error);
+      Alert.alert('Error', 'Failed to open MOU link');
+    }
   };
 
   const renderFormDataItem = (key: string, value: any) => {
@@ -312,18 +438,28 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
         )}
 
         {/* Sign MOU Button */}
-        <View style={styles.mouSection}>
-          <CustomButton
-            title="Sign MOU Now"
-            onPress={handleSignMOU}
-            colorScheme="primary"
-            fullWidth
-            disabled={true}
-          />
-          <Text style={styles.mouDisabledText}>
-            MOU signing will be available once your appointment is confirmed
-          </Text>
-        </View>
+        {appointment.mou_link && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>MOU Signing</Text>
+            <CustomButton
+              title={appointment.mou_status === 'signed' ? 'You already signed this MOU' : 'Sign MOU Now'}
+              onPress={handleSignMOU}
+              colorScheme="primary"
+              fullWidth
+              disabled={appointment.mou_status !== 'pending'}
+            />
+            {appointment.mou_status !== 'pending' && (
+              <Text style={styles.mouDisabledText}>
+                MOU signing will be available once your appointment is confirmed
+              </Text>
+            )}
+            {appointment.mou_status === 'pending' && (
+              <Text style={styles.mouEnabledText}>
+                Your MOU is ready for signing. Click the button above to proceed.
+              </Text>
+            )}
+          </View>
+        )}
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -516,14 +652,20 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.primary,
   },
-  mouSection: {
-  },
   mouDisabledText: {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.text.tertiary,
     textAlign: 'center',
     marginTop: theme.spacing.md,
     lineHeight: 18,
+  },
+  mouEnabledText: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.primary,
+    textAlign: 'center',
+    marginTop: theme.spacing.md,
+    lineHeight: 18,
+    fontWeight: theme.typography.weights.medium,
   },
 });
 

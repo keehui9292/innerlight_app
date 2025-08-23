@@ -68,7 +68,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       setLoading(true);
-      const response = await ApiService.login(email, password);
+      const response: any = await ApiService.login(email, password);
 
       // Handle both response formats: 
       // 1. Standard API format: { success: true, data: { user, token } }
@@ -80,11 +80,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await AsyncStorage.setItem('userToken', token);
         await AsyncStorage.setItem('userData', JSON.stringify(user));
         setUser(user);
-        return { success: true };
+        return { success: true, message: 'Login successful' };
       } else {
         return { success: false, message: response.message || 'Login failed' };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
       return { 
         success: false, 
@@ -123,7 +123,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         success: response.success, 
         message: response.message || 'Reset email sent successfully' 
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Forgot password error:', error);
       return { 
         success: false, 
@@ -144,7 +144,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }): Promise<AuthResponse> => {
     try {
       setLoading(true);
-      const response = await ApiService.register(data);
+      const response: any = await ApiService.register(data);
 
       // Handle both response formats: 
       // 1. Standard API format: { success: true, data: { user, token } }
@@ -156,11 +156,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await AsyncStorage.setItem('userToken', token);
         await AsyncStorage.setItem('userData', JSON.stringify(user));
         setUser(user);
-        return { success: true };
+        return { success: true, message: 'Registration successful' };
       } else {
         return { success: false, message: response.message || 'Registration failed' };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
       return { 
         success: false, 

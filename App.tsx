@@ -1,5 +1,6 @@
 // App.tsx
 
+import 'react-native-gesture-handler';
 import React from 'react';
 import { config } from './gluestack-ui.config.json'; 
 import { GluestackUIProvider } from '@gluestack-ui/themed';

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, CheckCircle, Clock, DollarSign } from 'lucide-react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import ApiService from '../../services/apiService';
 import CustomButton from '../../components/common/Button';
 import Header from '../../components/common/Header';
@@ -98,6 +99,10 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
   
   const [isSuccess, setIsSuccess] = useState(false);
   const [successData, setSuccessData] = useState<AppointmentSuccessData | null>(null);
+  
+  // Date picker state
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentDateField, setCurrentDateField] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAppointmentForms();
@@ -224,6 +229,30 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
     });
   };
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios'); // Keep open on iOS
+    
+    if (selectedDate && currentDateField) {
+      const dateString = selectedDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      setFormData(prev => ({ ...prev, [currentDateField]: dateString }));
+      
+      // Close picker on Android after selection
+      if (Platform.OS === 'android') {
+        setCurrentDateField(null);
+      }
+    }
+  };
+
+  const openDatePicker = (fieldName: string) => {
+    setCurrentDateField(fieldName);
+    setShowDatePicker(true);
+  };
+
+  const closeDatePicker = () => {
+    setShowDatePicker(false);
+    setCurrentDateField(null);
+  };
+
   const renderFormField = (field: FormField) => {
     const hasError = !!errors[field.name];
     const value = formData[field.name] as string || '';
@@ -286,7 +315,7 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
               <Text style={styles.fieldLabel}>{field.label}{field.required === 'on' && <Text style={styles.required}>*</Text>}</Text>
               <TouchableOpacity
                 style={[styles.dateTimeButton, hasError && styles.inputError]}
-                onPress={() => Alert.alert("Open Date Picker", "A native date picker would open here.")}
+                onPress={() => openDatePicker(field.name)}
               >
                 <Calendar size={20} color={theme.colors.text.secondary} />
                 <Text style={styles.dateTimeText}>
@@ -452,6 +481,31 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
           )}
         </ScrollView>
       </View>
+
+      {/* Native Date Picker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={currentDateField && formData[currentDateField] 
+            ? new Date(formData[currentDateField] as string + 'T00:00:00Z') 
+            : new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          minimumDate={new Date()}
+          onChange={handleDateChange}
+          {...(Platform.OS === 'ios' && {
+            style: { backgroundColor: 'white' }
+          })}
+        />
+      )}
+
+      {/* iOS Date Picker Done Button */}
+      {showDatePicker && Platform.OS === 'ios' && (
+        <View style={styles.iosDatePickerActions}>
+          <TouchableOpacity onPress={closeDatePicker} style={styles.iosDatePickerButton}>
+            <Text style={styles.iosDatePickerButtonText}>Done</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -651,6 +705,23 @@ const styles = StyleSheet.create({
     boldText: { 
         fontWeight: theme.typography.weights.medium,
         letterSpacing: -0.2,
+    },
+    iosDatePickerActions: {
+        backgroundColor: theme.colors.white,
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.sm,
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.border.subtle,
+        alignItems: 'flex-end',
+    },
+    iosDatePickerButton: {
+        paddingVertical: theme.spacing.sm,
+        paddingHorizontal: theme.spacing.md,
+    },
+    iosDatePickerButtonText: {
+        color: theme.colors.primary,
+        fontSize: theme.typography.sizes.md,
+        fontWeight: theme.typography.weights.medium,
     },
 });
 

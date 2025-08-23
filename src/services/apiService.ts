@@ -103,13 +103,30 @@ class ApiService {
   }
 
   async request<T = any>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
-    const token = await this.getAuthToken();
+    // List of endpoints that don't require authentication
+    const publicEndpoints = [
+      '/auth/login',
+      '/auth/register', 
+      '/auth/forgot-password',
+      '/auth/reset-password',
+      '/auth/verify-email'
+    ];
     
-    // Debug: Log token status
-    console.log('🔑 Token from storage:', token ? 'Found' : 'Not found');
-    if (token) {
-      console.log('🔑 Token length:', token.length);
-      console.log('🔑 Token preview:', token.substring(0, 20) + '...');
+    // Check if this endpoint requires authentication
+    const requiresAuth = !publicEndpoints.some(publicEndpoint => endpoint === publicEndpoint);
+    
+    let token = null;
+    if (requiresAuth) {
+      token = await this.getAuthToken();
+      
+      // Debug: Log token status
+      console.log('🔑 Token from storage:', token ? 'Found' : 'Not found');
+      if (token) {
+        console.log('🔑 Token length:', token.length);
+        console.log('🔑 Token preview:', token.substring(0, 20) + '...');
+      }
+    } else {
+      console.log('🔓 Public endpoint, skipping token check for:', endpoint);
     }
     
     const defaultHeaders: Record<string, string> = {
@@ -119,7 +136,7 @@ class ApiService {
     if (token) {
       defaultHeaders.Authorization = `Bearer ${token}`;
       console.log('🔑 Authorization header set:', `Bearer ${token.substring(0, 20)}...`);
-    } else {
+    } else if (requiresAuth) {
       console.log('🔑 No token found, making unauthenticated request');
     }
 
@@ -133,25 +150,46 @@ class ApiService {
     };
 
     try {
+      console.log('🌐 Making request to:', `${this.baseURL}${endpoint}`);
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
       const responseData = await response.json().catch(() => ({}));
       
       if (!response.ok) {
+        console.error('❌ HTTP Error:', response.status, response.statusText);
         throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
       }
 
+      console.log('✅ Request successful:', response.status);
       return responseData;
     } catch (error) {
-      console.error('API Request Error:', error);
+      console.error('❌ API Request Error:', error);
+      console.error('🔗 Failed URL:', `${this.baseURL}${endpoint}`);
       throw error;
     }
   }
 
   async requestFormData<T = any>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
-    const token = await this.getAuthToken();
+    // List of endpoints that don't require authentication
+    const publicEndpoints = [
+      '/auth/login',
+      '/auth/register', 
+      '/auth/forgot-password',
+      '/auth/reset-password',
+      '/auth/verify-email'
+    ];
     
-    // Debug: Log token status for form data requests
-    console.log('🔑 FormData Token from storage:', token ? 'Found' : 'Not found');
+    // Check if this endpoint requires authentication
+    const requiresAuth = !publicEndpoints.some(publicEndpoint => endpoint === publicEndpoint);
+    
+    let token = null;
+    if (requiresAuth) {
+      token = await this.getAuthToken();
+      
+      // Debug: Log token status for form data requests
+      console.log('🔑 FormData Token from storage:', token ? 'Found' : 'Not found');
+    } else {
+      console.log('🔓 Public FormData endpoint, skipping token check for:', endpoint);
+    }
     
     const headers: Record<string, string> = {};
 
@@ -167,16 +205,20 @@ class ApiService {
     };
 
     try {
+      console.log('🌐 Making FormData request to:', `${this.baseURL}${endpoint}`);
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
       const responseData = await response.json().catch(() => ({}));
       
       if (!response.ok) {
+        console.error('❌ FormData HTTP Error:', response.status, response.statusText);
         throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
       }
 
+      console.log('✅ FormData Request successful:', response.status);
       return responseData;
     } catch (error) {
-      console.error('API Request Error:', error);
+      console.error('❌ FormData API Request Error:', error);
+      console.error('🔗 Failed FormData URL:', `${this.baseURL}${endpoint}`);
       throw error;
     }
   }
