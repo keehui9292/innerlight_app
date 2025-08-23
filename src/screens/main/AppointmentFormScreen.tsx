@@ -371,26 +371,42 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
 
   const renderSuccessView = () => (
     <SafeAreaView style={styles.container}>
-      <View style={styles.successContainer}>
-        <CheckCircle size={80} color={theme.colors.success} />
+      <View style={styles.successHeader}>
+        <CheckCircle size={48} color={theme.colors.success} />
         <Text style={styles.successTitle}>Appointment Booked!</Text>
         <Text style={styles.successMessage}>Your appointment has been successfully scheduled.</Text>
+      </View>
+
+      <ScrollView 
+        style={styles.successScrollContainer}
+        contentContainerStyle={styles.successScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {successData && (
           <View style={styles.successDetails}>
-            <Text style={styles.successDetailItem}>
-              Appointment ID: <Text style={styles.boldText}>{successData.id.substring(0, 8)}...</Text>
-            </Text>
-            <Text style={styles.successDetailItem}>
-              Service: <Text style={styles.boldText}>{successData.appointment_form.name}</Text>
-            </Text>
-            <Text style={styles.successDetailItem}>
-              Name: <Text style={styles.boldText}>{successData.form_data.full_name}</Text>
-            </Text>
-            <Text style={styles.successDetailItem}>
-              Email: <Text style={styles.boldText}>{successData.form_data.email}</Text>
-            </Text>
-            <Text style={styles.successDetailItem}>
-              Date: <Text style={styles.boldText}>
+            <View style={styles.successDetailItem}>
+              <Text style={styles.successDetailLabel}>Appointment ID</Text>
+              <Text style={styles.successDetailValue}>{successData.id.substring(0, 8)}...</Text>
+            </View>
+            
+            <View style={styles.successDetailItem}>
+              <Text style={styles.successDetailLabel}>Service</Text>
+              <Text style={styles.successDetailValue}>{successData.appointment_form.name}</Text>
+            </View>
+            
+            <View style={styles.successDetailItem}>
+              <Text style={styles.successDetailLabel}>Name</Text>
+              <Text style={styles.successDetailValue}>{successData.form_data.full_name}</Text>
+            </View>
+            
+            <View style={styles.successDetailItem}>
+              <Text style={styles.successDetailLabel}>Email</Text>
+              <Text style={styles.successDetailValue}>{successData.form_data.email}</Text>
+            </View>
+            
+            <View style={styles.successDetailItem}>
+              <Text style={styles.successDetailLabel}>Date</Text>
+              <Text style={styles.successDetailValue}>
                 {new Date(successData.form_data.appointment_date + 'T00:00:00Z').toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
@@ -398,26 +414,39 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
                   day: 'numeric'
                 })}
               </Text>
-            </Text>
-            <Text style={styles.successDetailItem}>
-              Time: <Text style={styles.boldText}>
+            </View>
+            
+            <View style={styles.successDetailItem}>
+              <Text style={styles.successDetailLabel}>Time</Text>
+              <Text style={styles.successDetailValue}>
                 {new Date(`1970-01-01T${successData.form_data.appointment_time}:00Z`).toLocaleTimeString('en-US', {
                   hour: 'numeric',
                   minute: '2-digit',
                   hour12: true
                 })}
               </Text>
-            </Text>
+            </View>
+            
             {successData.total_price > 0 && (
-              <Text style={styles.successDetailItem}>
-                Total: <Text style={[styles.boldText, {color: theme.colors.primary}]}>${successData.total_price.toFixed(2)}</Text>
-              </Text>
+              <View style={styles.successDetailItem}>
+                <Text style={styles.successDetailLabel}>Total</Text>
+                <Text style={[styles.successDetailValue, {color: theme.colors.primary, fontWeight: theme.typography.weights.medium}]}>
+                  ${successData.total_price.toFixed(2)}
+                </Text>
+              </View>
             )}
-            <Text style={styles.successDetailItem}>
-              Status: <Text style={[styles.boldText, {color: theme.colors.warning}]}>{successData.status.toUpperCase()}</Text>
-            </Text>
+            
+            <View style={styles.successDetailItem}>
+              <Text style={styles.successDetailLabel}>Status</Text>
+              <Text style={[styles.successDetailValue, {color: theme.colors.warning, fontWeight: theme.typography.weights.medium}]}>
+                {successData.status.toUpperCase()}
+              </Text>
+            </View>
           </View>
         )}
+      </ScrollView>
+
+      <View style={styles.successButtonContainer}>
         <CustomButton title="Done" onPress={handleSuccessDone} colorScheme="primary" fullWidth />
       </View>
     </SafeAreaView>
@@ -662,45 +691,70 @@ const styles = StyleSheet.create({
     submitContainer: { 
         paddingTop: theme.spacing.lg,
     },
-    successContainer: { 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        padding: theme.spacing.xxl, 
+    successHeader: {
+        alignItems: 'center',
+        paddingHorizontal: theme.spacing.md,
+        paddingTop: theme.spacing.lg,
+        paddingBottom: theme.spacing.md,
         backgroundColor: theme.colors.background,
     },
+    successScrollContainer: {
+        flex: 1,
+    },
+    successScrollContent: {
+        padding: theme.spacing.md,
+    },
     successTitle: { 
-        fontSize: 36, 
-        fontWeight: theme.typography.weights.light, 
+        fontSize: 22,
+        fontWeight: theme.typography.weights.medium, 
         color: theme.colors.text.primary, 
-        marginTop: theme.spacing.xxl, 
+        marginTop: theme.spacing.md, 
         textAlign: 'center',
-        letterSpacing: -0.8,
+        letterSpacing: -0.3,
     },
     successMessage: { 
-        fontSize: theme.typography.sizes.lg, 
+        fontSize: theme.typography.sizes.sm, 
         color: theme.colors.text.tertiary, 
         textAlign: 'center', 
-        marginTop: theme.spacing.lg, 
-        marginBottom: theme.spacing.xxl,
-        lineHeight: 26,
-        maxWidth: 320,
+        marginTop: theme.spacing.sm, 
+        lineHeight: 20,
+        paddingHorizontal: theme.spacing.sm,
     },
     successDetails: { 
-        width: '100%', 
         backgroundColor: theme.colors.white, 
-        borderRadius: theme.borderRadius.xl, 
-        padding: theme.spacing.xxl, 
-        marginBottom: theme.spacing.xxl, 
+        borderRadius: theme.borderRadius.lg, 
         borderWidth: 1, 
         borderColor: theme.colors.border.subtle,
-        ...theme.shadows.soft,
+        overflow: 'hidden',
+        ...theme.shadows.elegant,
     },
     successDetailItem: { 
-        fontSize: theme.typography.sizes.lg, 
-        color: theme.colors.text.primary, 
-        marginBottom: theme.spacing.md,
-        lineHeight: 24,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.sm,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border.subtle,
+    },
+    successDetailLabel: {
+        fontSize: theme.typography.sizes.sm,
+        color: theme.colors.text.muted,
+        fontWeight: theme.typography.weights.medium,
+        flex: 0.4,
+    },
+    successDetailValue: {
+        fontSize: theme.typography.sizes.sm,
+        color: theme.colors.text.primary,
+        fontWeight: theme.typography.weights.regular,
+        flex: 0.6,
+        textAlign: 'right',
+        lineHeight: 18,
+    },
+    successButtonContainer: {
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.lg,
+        backgroundColor: theme.colors.background,
     },
     boldText: { 
         fontWeight: theme.typography.weights.medium,
