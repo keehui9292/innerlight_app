@@ -425,11 +425,11 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
 
   const getStatusText = () => {
     if (paymentStatus === 'paid') {
-      return 'CONFIRMED';
+      return 'Confirmed';
     } else if (successData?.payment_required) {
-      return isPollingPayment ? 'CHECKING PAYMENT...' : 'PENDING PAYMENT';
+      return isPollingPayment ? 'Checking Payment...' : 'Pending Payment';
     } else {
-      return successData?.appointment.status.toUpperCase() || 'PENDING';
+      return successData?.appointment.status.toUpperCase() || 'Pending';
     }
   };
 
@@ -664,14 +664,24 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
               </View>
             </View>
 
-            {successData.payment_required && successData.payment_url && (
+            {successData.payment_required && (
               <View style={styles.successDetailItem}>
                 <Text style={styles.successDetailLabel}>Payment</Text>
-                <TouchableOpacity onPress={() => handlePaymentRedirect(successData.payment_url!)}>
-                  <Text style={[styles.successDetailValue, {color: theme.colors.primary, textDecorationLine: 'underline'}]}>
-                    Complete Payment
+                {paymentStatus === 'paid' ? (
+                  <Text style={[styles.successDetailValue, {color: theme.colors.success, fontWeight: theme.typography.weights.medium}]}>
+                    Completed
                   </Text>
-                </TouchableOpacity>
+                ) : successData.payment_url ? (
+                  <TouchableOpacity onPress={() => handlePaymentRedirect(successData.payment_url!)}>
+                    <Text style={[styles.successDetailValue, {color: theme.colors.primary, textDecorationLine: 'underline'}]}>
+                      Complete Payment
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <Text style={[styles.successDetailValue, {color: theme.colors.text.muted}]}>
+                    Payment link not available
+                  </Text>
+                )}
               </View>
             )}
           </View>
