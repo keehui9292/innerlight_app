@@ -471,8 +471,8 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: theme.spacing.xl,
-    right: theme.spacing.xl,
+    bottom: theme.spacing.md,
+    right: theme.spacing.md,
     width: 64,
     height: 64,
     backgroundColor: theme.colors.primary,

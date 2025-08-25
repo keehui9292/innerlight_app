@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, CheckCircle, Clock, DollarSign } from 'lucide-react-native';
@@ -56,32 +57,37 @@ interface FormData {
 }
 
 interface AppointmentSuccessData {
-    id: string;
-    appointment_form_id: string;
-    user_id: string;
-    website_id: string;
-    appointment_date: string;
-    appointment_time: string;
-    form_data: {
-        appointment_date?: string;
-        appointment_time?: string;
-        full_name?: string;
-        email?: string;
-        phone?: string;
-        service_type?: string;
-        notes?: string | null;
-        [key: string]: any;
-    };
-    total_price: number;
-    status: string;
-    created_at: string;
-    updated_at: string;
-    appointment_form: {
+    appointment: {
         id: string;
-        name: string;
-        description?: string | null;
-        fields: FormField[];
+        appointment_form_id: string;
+        user_id: string;
+        website_id: string;
+        appointment_date: string;
+        appointment_time: string;
+        form_data: {
+            appointment_date?: string;
+            appointment_time?: string;
+            full_name?: string;
+            email?: string;
+            phone?: string;
+            service_type?: string;
+            notes?: string | null;
+            [key: string]: any;
+        };
+        total_price: number;
+        status: string;
+        created_at: string;
+        updated_at: string;
+        appointment_form: {
+            id: string;
+            name: string;
+            description?: string | null;
+            fields: FormField[];
+        };
     };
+    payment_required: boolean;
+    payment_url?: string;
+    total_amount: number;
 }
 
 interface AppointmentFormScreenProps {
@@ -100,9 +106,18 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
   const [isSuccess, setIsSuccess] = useState(false);
   const [successData, setSuccessData] = useState<AppointmentSuccessData | null>(null);
   
+  // Payment checking state
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+  const [isPollingPayment, setIsPollingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string>('pending');
+  const [appointmentStatus, setAppointmentStatus] = useState<string>('pending');
+  
   // Date picker state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentDateField, setCurrentDateField] = useState<string | null>(null);
+  
+  // Refs
+  const paymentPollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchAppointmentForms();
@@ -113,6 +128,16 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
       calculateTotalPrice();
     }
   }, [formData, selectedForm]);
+
+  // Cleanup payment polling on unmount
+  useEffect(() => {
+    return () => {
+      if (paymentPollingIntervalRef.current) {
+        clearInterval(paymentPollingIntervalRef.current);
+        paymentPollingIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   const fetchAppointmentForms = async () => {
     try {
@@ -207,7 +232,21 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
       
       if (response.success) {
         setSuccessData(response.data);
-        setIsSuccess(true);
+        
+        // Handle payment if required
+        if (response.data.payment_required && response.data.payment_url) {
+          // Show payment checking screen
+          setIsCheckingPayment(true);
+          // Start polling immediately
+          startPaymentPolling(response.data.appointment.id);
+          // Redirect to payment after a short delay to ensure UI updates
+          setTimeout(() => {
+            handlePaymentRedirect(response.data.payment_url);
+          }, 500);
+        } else {
+          // No payment required, show success screen
+          setIsSuccess(true);
+        }
       } else {
         Alert.alert('Error', response.message || 'Failed to book appointment');
       }
@@ -218,10 +257,141 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
       setSubmitting(false);
     }
   };
+
+  const handlePaymentRedirect = async (paymentUrl: string) => {
+    try {
+      const canOpen = await Linking.canOpenURL(paymentUrl);
+      
+      if (canOpen) {
+        await Linking.openURL(paymentUrl);
+        
+        // Show payment pending message (success screen is already visible)
+        Alert.alert(
+          'Payment Required', 
+          'You have been redirected to complete payment. We will automatically check your payment status.',
+          [
+            {
+              text: 'OK'
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Error', 'Unable to open payment link. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error opening payment URL:', error);
+      Alert.alert('Error', 'Failed to open payment link. Please try again.');
+    }
+  };
+
+  const startPaymentPolling = (appointmentId: string) => {
+    console.log('🚀 Starting payment polling for appointment:', appointmentId);
+    
+    // Clear any existing interval
+    if (paymentPollingIntervalRef.current) {
+      clearInterval(paymentPollingIntervalRef.current);
+    }
+
+    setIsPollingPayment(true);
+    console.log('💡 Set isPollingPayment to true');
+    
+    // Start polling every 5 seconds
+    paymentPollingIntervalRef.current = setInterval(async () => {
+      await checkPaymentStatus(appointmentId);
+    }, 5000);
+
+    // Also check immediately
+    checkPaymentStatus(appointmentId);
+  };
+
+  const stopPaymentPolling = () => {
+    if (paymentPollingIntervalRef.current) {
+      clearInterval(paymentPollingIntervalRef.current);
+      paymentPollingIntervalRef.current = null;
+    }
+    setIsPollingPayment(false);
+  };
+
+  const checkPaymentStatus = async (appointmentId: string) => {
+    try {
+      console.log('🔄 Checking payment status for appointment:', appointmentId);
+      const response = await ApiService.getAppointmentPaymentStatus(appointmentId);
+      
+      if (response.success && response.data) {
+        const { payment_status, appointment_status, is_paid } = response.data;
+        
+        console.log('💳 Payment status:', payment_status, 'Is paid:', is_paid);
+        
+        setPaymentStatus(payment_status);
+        setAppointmentStatus(appointment_status);
+        
+        // Stop polling if payment is completed
+        if (payment_status === 'paid' || is_paid) {
+          console.log('✅ Payment completed! Stopping polling.');
+          stopPaymentPolling();
+          setIsCheckingPayment(false);
+          setIsSuccess(true);
+          
+          // Show success message
+          Alert.alert(
+            'Payment Successful!',
+            'Your payment has been processed successfully. Your appointment is now confirmed.',
+            [{ text: 'OK' }]
+          );
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error checking payment status:', error);
+      // Don't stop polling on error, just log it
+    }
+  };
   
+  const handleCancelPayment = async () => {
+    if (!successData?.appointment?.id) {
+      Alert.alert('Error', 'Unable to cancel appointment. Missing appointment information.');
+      return;
+    }
+    
+    try {
+      // Stop polling first
+      stopPaymentPolling();
+      
+      // Cancel appointment
+      await ApiService.cancelAppointment(successData.appointment.id);
+      
+      // Reset states 
+      setIsCheckingPayment(false);
+      setIsSuccess(false);
+      setSuccessData(null);
+      setPaymentStatus('pending');
+      setAppointmentStatus('pending');
+      
+      if (selectedForm) {
+        initializeFormData(selectedForm);
+      }
+      
+      // Navigate to the Appointments list screen
+      navigation.navigate('MainTabs', {
+        screen: 'Appointments',
+        params: { refresh: true }
+      });
+      
+      Alert.alert('Appointment Cancelled', 'Your appointment has been cancelled successfully.');
+      
+    } catch (error) {
+      Alert.alert('Error', 'Failed to cancel appointment. Please try again.');
+    }
+  };
+
   const handleSuccessDone = () => {
+    // Stop payment polling when leaving success screen
+    stopPaymentPolling();
+    
     setIsSuccess(false);
     setSuccessData(null);
+    setPaymentStatus('pending');
+    setAppointmentStatus('pending');
+    
     if (selectedForm) initializeFormData(selectedForm);
     navigation.navigate('MainTabs', {
       screen: 'Appointments',
@@ -251,6 +421,26 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
   const closeDatePicker = () => {
     setShowDatePicker(false);
     setCurrentDateField(null);
+  };
+
+  const getStatusText = () => {
+    if (paymentStatus === 'paid') {
+      return 'CONFIRMED';
+    } else if (successData?.payment_required) {
+      return isPollingPayment ? 'CHECKING PAYMENT...' : 'PENDING PAYMENT';
+    } else {
+      return successData?.appointment.status.toUpperCase() || 'PENDING';
+    }
+  };
+
+  const getStatusColor = () => {
+    if (paymentStatus === 'paid') {
+      return theme.colors.success;
+    } else if (successData?.payment_required) {
+      return theme.colors.warning;
+    } else {
+      return theme.colors.success;
+    }
   };
 
   const renderFormField = (field: FormField) => {
@@ -369,12 +559,38 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
     }
   };
 
+  const renderPaymentCheckingView = () => (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.paymentCheckingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.paymentCheckingTitle}>Checking Payment...</Text>
+        <Text style={styles.paymentCheckingMessage}>
+          Please complete your payment in the browser. We'll automatically detect when your payment is processed.
+        </Text>
+        
+        <View style={styles.paymentCheckingButtonContainer}>
+          <TouchableOpacity 
+            style={styles.cancelButton}
+            onPress={handleCancelPayment}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.cancelButtonText}>Cancel Payment</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+
   const renderSuccessView = () => (
     <SafeAreaView style={styles.container}>
       <View style={styles.successHeader}>
         <CheckCircle size={48} color={theme.colors.success} />
         <Text style={styles.successTitle}>Appointment Booked!</Text>
-        <Text style={styles.successMessage}>Your appointment has been successfully scheduled.</Text>
+        <Text style={styles.successMessage}>
+          {successData?.payment_required 
+            ? 'Your appointment has been created. Please complete payment to confirm.' 
+            : 'Your appointment has been successfully scheduled.'}
+        </Text>
       </View>
 
       <ScrollView 
@@ -386,28 +602,28 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
           <View style={styles.successDetails}>
             <View style={styles.successDetailItem}>
               <Text style={styles.successDetailLabel}>Appointment ID</Text>
-              <Text style={styles.successDetailValue}>{successData.id.substring(0, 8)}...</Text>
+              <Text style={styles.successDetailValue}>{successData.appointment.id.substring(0, 8)}...</Text>
             </View>
             
             <View style={styles.successDetailItem}>
               <Text style={styles.successDetailLabel}>Service</Text>
-              <Text style={styles.successDetailValue}>{successData.appointment_form.name}</Text>
+              <Text style={styles.successDetailValue}>{successData.appointment.appointment_form.name}</Text>
             </View>
             
             <View style={styles.successDetailItem}>
               <Text style={styles.successDetailLabel}>Name</Text>
-              <Text style={styles.successDetailValue}>{successData.form_data.full_name}</Text>
+              <Text style={styles.successDetailValue}>{successData.appointment.form_data.full_name}</Text>
             </View>
             
             <View style={styles.successDetailItem}>
               <Text style={styles.successDetailLabel}>Email</Text>
-              <Text style={styles.successDetailValue}>{successData.form_data.email}</Text>
+              <Text style={styles.successDetailValue}>{successData.appointment.form_data.email}</Text>
             </View>
             
             <View style={styles.successDetailItem}>
               <Text style={styles.successDetailLabel}>Date</Text>
               <Text style={styles.successDetailValue}>
-                {new Date(successData.form_data.appointment_date + 'T00:00:00Z').toLocaleDateString('en-US', {
+                {new Date(successData.appointment.form_data.appointment_date + 'T00:00:00Z').toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -419,7 +635,7 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
             <View style={styles.successDetailItem}>
               <Text style={styles.successDetailLabel}>Time</Text>
               <Text style={styles.successDetailValue}>
-                {new Date(`1970-01-01T${successData.form_data.appointment_time}:00Z`).toLocaleTimeString('en-US', {
+                {new Date(`1970-01-01T${successData.appointment.form_data.appointment_time}:00Z`).toLocaleTimeString('en-US', {
                   hour: 'numeric',
                   minute: '2-digit',
                   hour12: true
@@ -427,21 +643,37 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
               </Text>
             </View>
             
-            {successData.total_price > 0 && (
+            {successData.total_amount > 0 && (
               <View style={styles.successDetailItem}>
                 <Text style={styles.successDetailLabel}>Total</Text>
                 <Text style={[styles.successDetailValue, {color: theme.colors.primary, fontWeight: theme.typography.weights.medium}]}>
-                  ${successData.total_price.toFixed(2)}
+                  ${successData.total_amount.toFixed(2)}
                 </Text>
               </View>
             )}
             
             <View style={styles.successDetailItem}>
               <Text style={styles.successDetailLabel}>Status</Text>
-              <Text style={[styles.successDetailValue, {color: theme.colors.warning, fontWeight: theme.typography.weights.medium}]}>
-                {successData.status.toUpperCase()}
-              </Text>
+              <View style={styles.statusContainer}>
+                <Text style={[styles.successDetailValue, {color: getStatusColor(), fontWeight: theme.typography.weights.medium}]}>
+                  {getStatusText()}
+                </Text>
+                {isPollingPayment && (
+                  <ActivityIndicator size="small" color={theme.colors.primary} style={{marginLeft: theme.spacing.sm}} />
+                )}
+              </View>
             </View>
+
+            {successData.payment_required && successData.payment_url && (
+              <View style={styles.successDetailItem}>
+                <Text style={styles.successDetailLabel}>Payment</Text>
+                <TouchableOpacity onPress={() => handlePaymentRedirect(successData.payment_url!)}>
+                  <Text style={[styles.successDetailValue, {color: theme.colors.primary, textDecorationLine: 'underline'}]}>
+                    Complete Payment
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -463,8 +695,12 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
     );
   }
   
+  if (isCheckingPayment) {
+    return renderPaymentCheckingView();
+  }
+  
   if (isSuccess) {
-      return renderSuccessView();
+    return renderSuccessView();
   }
 
   return (
@@ -751,10 +987,60 @@ const styles = StyleSheet.create({
         textAlign: 'right',
         lineHeight: 18,
     },
+    statusContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        flex: 0.6,
+    },
     successButtonContainer: {
         paddingHorizontal: theme.spacing.md,
         paddingVertical: theme.spacing.lg,
         backgroundColor: theme.colors.background,
+    },
+    paymentCheckingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: theme.spacing.xl,
+    },
+    paymentCheckingTitle: {
+        fontSize: 24,
+        fontWeight: theme.typography.weights.medium,
+        color: theme.colors.text.primary,
+        marginTop: theme.spacing.xl,
+        marginBottom: theme.spacing.md,
+        textAlign: 'center',
+    },
+    paymentCheckingMessage: {
+        fontSize: theme.typography.sizes.md,
+        color: theme.colors.text.secondary,
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: theme.spacing.xxl,
+        paddingHorizontal: theme.spacing.md,
+    },
+    paymentCheckingButtonContainer: {
+        position: 'absolute',
+        bottom: theme.spacing.xl,
+        left: theme.spacing.md,
+        right: theme.spacing.md,
+    },
+    cancelButton: {
+        backgroundColor: theme.colors.white,
+        borderWidth: 1,
+        borderColor: theme.colors.border.default,
+        borderRadius: theme.borderRadius.lg,
+        paddingVertical: theme.spacing.md,
+        paddingHorizontal: theme.spacing.lg,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...theme.shadows.soft,
+    },
+    cancelButtonText: {
+        fontSize: theme.typography.sizes.md,
+        fontWeight: theme.typography.weights.medium,
+        color: theme.colors.text.primary,
     },
     boldText: { 
         fontWeight: theme.typography.weights.medium,

@@ -57,7 +57,6 @@ class ApiService {
     try {
       return await AsyncStorage.getItem('userToken');
     } catch (error) {
-      console.error('Error getting auth token:', error);
       return null;
     }
   }
@@ -66,7 +65,6 @@ class ApiService {
     try {
       await AsyncStorage.setItem('userToken', token);
     } catch (error) {
-      console.error('Error saving auth token:', error);
       throw error;
     }
   }
@@ -75,30 +73,7 @@ class ApiService {
     try {
       await AsyncStorage.removeItem('userToken');
     } catch (error) {
-      console.error('Error removing auth token:', error);
       throw error;
-    }
-  }
-
-  // Debug method to check AsyncStorage contents
-  async debugTokenStorage(): Promise<void> {
-    try {
-      const allKeys = await AsyncStorage.getAllKeys();
-      console.log('🔍 All AsyncStorage keys:', allKeys);
-      
-      const token = await AsyncStorage.getItem('userToken');
-      console.log('🔍 userToken value:', token);
-      
-      // Check if there are other token-related keys
-      const tokenKeys = allKeys.filter(key => key.toLowerCase().includes('token'));
-      console.log('🔍 Token-related keys:', tokenKeys);
-      
-      for (const key of tokenKeys) {
-        const value = await AsyncStorage.getItem(key);
-        console.log(`🔍 ${key}:`, value);
-      }
-    } catch (error) {
-      console.error('Error debugging token storage:', error);
     }
   }
 
@@ -118,15 +93,6 @@ class ApiService {
     let token = null;
     if (requiresAuth) {
       token = await this.getAuthToken();
-      
-      // Debug: Log token status
-      console.log('🔑 Token from storage:', token ? 'Found' : 'Not found');
-      if (token) {
-        console.log('🔑 Token length:', token.length);
-        console.log('🔑 Token preview:', token.substring(0, 20) + '...');
-      }
-    } else {
-      console.log('🔓 Public endpoint, skipping token check for:', endpoint);
     }
     
     const defaultHeaders: Record<string, string> = {
@@ -135,9 +101,6 @@ class ApiService {
 
     if (token) {
       defaultHeaders.Authorization = `Bearer ${token}`;
-      console.log('🔑 Authorization header set:', `Bearer ${token.substring(0, 20)}...`);
-    } else if (requiresAuth) {
-      console.log('🔑 No token found, making unauthenticated request');
     }
 
     const config: RequestInit = {
@@ -150,20 +113,15 @@ class ApiService {
     };
 
     try {
-      console.log('🌐 Making request to:', `${this.baseURL}${endpoint}`);
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
       const responseData = await response.json().catch(() => ({}));
       
       if (!response.ok) {
-        console.error('❌ HTTP Error:', response.status, response.statusText);
         throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
       }
 
-      console.log('✅ Request successful:', response.status);
       return responseData;
     } catch (error) {
-      console.error('❌ API Request Error:', error);
-      console.error('🔗 Failed URL:', `${this.baseURL}${endpoint}`);
       throw error;
     }
   }
@@ -184,18 +142,12 @@ class ApiService {
     let token = null;
     if (requiresAuth) {
       token = await this.getAuthToken();
-      
-      // Debug: Log token status for form data requests
-      console.log('🔑 FormData Token from storage:', token ? 'Found' : 'Not found');
-    } else {
-      console.log('🔓 Public FormData endpoint, skipping token check for:', endpoint);
     }
     
     const headers: Record<string, string> = {};
 
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-      console.log('🔑 FormData Authorization header set:', `Bearer ${token.substring(0, 20)}...`);
     }
 
     const config: RequestInit = {
@@ -205,20 +157,15 @@ class ApiService {
     };
 
     try {
-      console.log('🌐 Making FormData request to:', `${this.baseURL}${endpoint}`);
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
       const responseData = await response.json().catch(() => ({}));
       
       if (!response.ok) {
-        console.error('❌ FormData HTTP Error:', response.status, response.statusText);
         throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
       }
 
-      console.log('✅ FormData Request successful:', response.status);
       return responseData;
     } catch (error) {
-      console.error('❌ FormData API Request Error:', error);
-      console.error('🔗 Failed FormData URL:', `${this.baseURL}${endpoint}`);
       throw error;
     }
   }
@@ -377,12 +324,33 @@ class ApiService {
     return this.delete<null>(`/appointments/${appointmentId}`);
   }
 
+  async cancelAppointment(appointmentId: string): Promise<ApiResponse<null>> {
+    return this.post<null>(`/appointments/${appointmentId}/cancel`);
+  }
+
   async getAppointmentForms(): Promise<ApiResponse<AppointmentForm[]>> {
     return this.get<AppointmentForm[]>('/appointment-forms');
   }
 
   async getAvailableSlots(formId: string, date: string): Promise<ApiResponse<TimeSlot[]>> {
     return this.get<TimeSlot[]>(`/appointment-forms/${formId}/slots?date=${date}`);
+  }
+
+  async getAppointmentPaymentStatus(appointmentId: string): Promise<ApiResponse<{
+    appointment_id: string;
+    reference_number: string;
+    payment_status: string;
+    is_paid: boolean;
+    paid_at: string | null;
+    total_price: number;
+    payment_required: boolean;
+    appointment_status: string;
+    appointment_date: string;
+    appointment_time: string;
+    customer_name: string;
+    customer_email: string;
+  }>> {
+    return this.get(`/payment-status/${appointmentId}`);
   }
 
   // Events
