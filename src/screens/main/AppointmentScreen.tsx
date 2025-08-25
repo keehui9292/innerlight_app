@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Platform, Alert, RefreshControl, View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Calendar, Clock, MapPin, User } from 'lucide-react-native';
+import { Plus, Calendar, Clock, MapPin, User, DollarSign } from 'lucide-react-native';
 import ApiService from '../../services/apiService';
 import CustomButton from '../../components/common/Button';
 import { Appointment, TabScreenProps } from '../../types';
@@ -270,7 +270,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
 
                       {appointment.total_price && parseFloat(appointment.total_price) > 0 && (
                         <View style={styles.detailRow}>
-                          <Text style={styles.detailText}>💰</Text>
+                          <DollarSign size={14} color={theme.colors.text.secondary} />
                           <Text style={styles.detailText}>
                             ${parseFloat(appointment.total_price).toFixed(2)}
                           </Text>
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   appointmentCard: {
     backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: theme.colors.border.subtle,
+    borderColor: theme.colors.border.default,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
     ...theme.shadows.elegant,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: theme.spacing.sm,
   },
   appointmentInfo: {
@@ -413,61 +413,60 @@ const styles = StyleSheet.create({
     maxWidth: '70%',
   },
   appointmentTitle: {
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.md,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
     letterSpacing: -0.2,
-    marginBottom: theme.spacing.xs,
+    marginBottom: 2,
     flexShrink: 1,
+    lineHeight: 20,
   },
   appointmentDescription: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: 11,
     color: theme.colors.text.tertiary,
-    lineHeight: 18,
+    lineHeight: 14,
   },
   statusBadge: {
     paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.xl,
+    paddingVertical: 4,
+    borderRadius: theme.borderRadius.md,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 0,
     flexShrink: 0,
   },
   statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: theme.spacing.sm,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginRight: 4,
   },
   statusText: {
     fontSize: 10,
     fontWeight: theme.typography.weights.medium,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    textTransform: 'capitalize',
+    letterSpacing: 0,
   },
   detailsContainer: {
-    backgroundColor: theme.colors.border.subtle,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.sm,
-    gap: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
+    gap: 6,
   },
   detailText: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: 11,
     color: theme.colors.text.secondary,
     fontWeight: theme.typography.weights.regular,
   },
   detailSeparator: {
-    width: 3,
-    height: 3,
+    width: 2,
+    height: 2,
     backgroundColor: theme.colors.text.light,
-    borderRadius: 2,
-    marginHorizontal: theme.spacing.md,
+    borderRadius: 1,
+    marginHorizontal: 4,
   },
   fab: {
     position: 'absolute',

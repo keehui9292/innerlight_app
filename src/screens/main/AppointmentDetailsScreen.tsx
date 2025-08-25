@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   statusBadge: {
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xs,
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.borderRadius.lg,
     flexDirection: 'row',
@@ -565,13 +565,13 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    marginRight: theme.spacing.sm,
+    marginRight: theme.spacing.xs,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: theme.typography.weights.medium,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.1,
   },
   priceContainer: {
     flexDirection: 'row',
