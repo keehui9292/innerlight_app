@@ -353,35 +353,6 @@ class ApiService {
     return this.get(`/payment-status/${appointmentId}`);
   }
 
-  async getPaymentHistory(): Promise<ApiResponse<{
-    payment_history: Array<{
-      appointment_id: string;
-      appointment_form_name: string;
-      appointment_date: string;
-      appointment_time: string;
-      appointment_status: string;
-      total_price: string;
-      payment_status: string;
-      payment_required: boolean;
-      is_paid: boolean;
-      paid_at: string | null;
-      payment_session_id: string | null;
-      payment_intent_id: string | null;
-      created_at: string;
-      updated_at: string;
-    }>;
-    summary: {
-      total_appointments: number;
-      paid_appointments: number;
-      pending_payments: number;
-      total_amount_paid: number;
-      total_amount_pending: number;
-      free_appointments: number;
-    };
-  }>> {
-    return this.get('/user/payment-history');
-  }
-
   // Events
   async getEvents(): Promise<ApiResponse<any[]>> {
     return this.get<any[]>('/events');

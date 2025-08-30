@@ -6,7 +6,6 @@ import AppointmentScreen from '../screens/main/AppointmentScreen';
 import AppointmentFormScreen from '../screens/main/AppointmentFormScreen';
 import AppointmentDetailsScreen from '../screens/main/AppointmentDetailsScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
-import PaymentHistoryScreen from '../screens/main/PaymentHistoryScreen';
 import { theme } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -85,7 +84,6 @@ const MainStack = () => {
       <Stack.Screen name="MainTabs" component={TabNavigator} />
       <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} />
       <Stack.Screen name="AppointmentDetails" component={AppointmentDetailsScreen} />
-      <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
     </Stack.Navigator>
   );
 };

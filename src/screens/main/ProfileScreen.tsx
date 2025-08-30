@@ -1,6 +1,5 @@
 import React, { Fragment, useState, useEffect, useCallback } from 'react';
-import { Platform, Alert, View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
+import { Platform, Alert, View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, Clipboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   User, 
@@ -12,8 +11,7 @@ import {
   Mail,
   Phone,
   MapPin,
-  Copy,
-  DollarSign
+  Copy
 } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { TabScreenProps } from '../../types';
@@ -38,8 +36,7 @@ interface UserProfile {
   };
 }
 
-
-const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
+const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = () => {
   const { user, logout } = useAuth() as any;
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -107,12 +104,6 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
 
   const menuItems = [
     {
-      title: 'Payment History',
-      description: 'View your payment records',
-      icon: DollarSign,
-      onPress: () => navigation.navigate('PaymentHistory'),
-    },
-    {
       title: 'Account Settings',
       description: 'Manage your personal information',
       icon: Settings,
@@ -161,34 +152,15 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
     return formatDate(createdAt);
   };
 
-
   const copyReferralCode = async (): Promise<void> => {
-    console.log('copyReferralCode called');
-    console.log('currentUser?.referral_code:', currentUser?.referral_code);
-    
     if (currentUser?.referral_code) {
       try {
-        await Clipboard.setStringAsync(currentUser.referral_code);
-        console.log('Clipboard.setStringAsync successful');
-        Alert.alert(
-          '✅ Copied!', 
-          `Your referral code "${currentUser.referral_code}" has been copied to clipboard. Share it with friends to invite them!`,
-          [{ text: 'OK', style: 'default' }]
-        );
+        await Clipboard.setString(currentUser.referral_code);
+        Alert.alert('Copied!', 'Referral code copied to clipboard');
       } catch (error) {
         console.error('Error copying to clipboard:', error);
-        Alert.alert(
-          '❌ Error', 
-          'Failed to copy referral code. Please try again.',
-          [{ text: 'OK', style: 'default' }]
-        );
+        Alert.alert('Error', 'Failed to copy referral code');
       }
-    } else {
-      Alert.alert(
-        '⚠️ No Referral Code', 
-        'Your referral code is not available at the moment.',
-        [{ text: 'OK', style: 'default' }]
-      );
     }
   };
 
@@ -261,7 +233,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
                 return (
                   <View key={index} style={styles.infoRow}>
                     <View style={styles.infoIconContainer}>
-                      <IconComponent size={16} color={theme.colors.primary} />
+                      <IconComponent size={20} color={theme.colors.primary} />
                     </View>
                     <View style={styles.infoContent}>
                       <Text style={styles.infoLabel}>
@@ -328,7 +300,6 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
             </View>
           )}
 
-
           {/* Settings Menu */}
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Settings</Text>
@@ -347,7 +318,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
                   >
                     <View style={styles.menuItemContent}>
                       <View style={styles.menuIconContainer}>
-                        <IconComponent size={18} color={theme.colors.primary} />
+                        <IconComponent size={22} color={theme.colors.primary} />
                       </View>
                       
                       <View style={styles.menuTextContent}>
@@ -359,7 +330,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
                         </Text>
                       </View>
                       
-                      <ChevronRight size={16} color={theme.colors.text.tertiary} />
+                      <ChevronRight size={20} color={theme.colors.text.tertiary} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -375,7 +346,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
           >
             <View style={styles.signOutContent}>
               <View style={styles.signOutIconContainer}>
-                <LogOut size={18} color={theme.colors.white} />
+                <LogOut size={22} color={theme.colors.error} />
               </View>
               
               <Text style={styles.signOutTitle}>
@@ -513,105 +484,103 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   infoSection: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   infoCard: {
     backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: theme.colors.border.default,
+    borderColor: theme.colors.border.subtle,
     borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.sm,
+    padding: theme.spacing.md,
     ...theme.shadows.elegant,
+    marginHorizontal: theme.spacing.xs,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.subtle,
   },
   infoIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: theme.colors.primaryGhost,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: theme.spacing.sm,
+    marginRight: theme.spacing.md,
   },
   infoContent: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 11,
-    color: theme.colors.text.tertiary,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.secondary,
     fontWeight: theme.typography.weights.medium,
-    marginBottom: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    marginBottom: theme.spacing.sm,
+    letterSpacing: 0.2,
   },
   infoValue: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.lg,
     color: theme.colors.text.primary,
     fontWeight: theme.typography.weights.regular,
-    letterSpacing: -0.1,
-    lineHeight: 18,
+    letterSpacing: -0.2,
   },
   courseSection: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   courseStatusCard: {
     backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: theme.colors.border.default,
+    borderColor: theme.colors.border.light,
     borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.sm,
-    ...theme.shadows.elegant,
+    padding: theme.spacing.md,
+    ...theme.shadows.light,
   },
   statusRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: theme.spacing.xs,
+    paddingVertical: theme.spacing.sm,
   },
   statusLabel: {
-    fontSize: 11,
+    fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
-    letterSpacing: -0.1,
   },
   statusBadge: {
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.sm,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.md,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: theme.typography.sizes.xs,
     fontWeight: theme.typography.weights.medium,
     textTransform: 'capitalize',
-    letterSpacing: 0,
   },
   settingsSection: {
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   sectionTitle: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
     letterSpacing: -0.2,
   },
   settingsCard: {
     backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: theme.colors.border.default,
+    borderColor: theme.colors.border.subtle,
     borderRadius: theme.borderRadius.lg,
     overflow: 'hidden',
     ...theme.shadows.elegant,
+    marginHorizontal: theme.spacing.xs,
   },
   menuItem: {
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
   },
   menuItemBorder: {
     borderBottomWidth: 1,
@@ -622,13 +591,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   menuIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: theme.colors.primaryGhost,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: theme.spacing.sm,
+    marginRight: theme.spacing.md,
   },
   signOutIcon: {
     backgroundColor: '#fecaca',
@@ -637,28 +606,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuTitle: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.md,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
-    marginBottom: 2,
+    marginBottom: theme.spacing.xs,
     letterSpacing: -0.1,
-    lineHeight: 16,
   },
   menuDescription: {
-    fontSize: 11,
+    fontSize: theme.typography.sizes.sm,
     color: theme.colors.text.tertiary,
-    lineHeight: 14,
+    lineHeight: 18,
   },
   itemSpacer: {
     height: theme.spacing.sm,
   },
   signOutButton: {
-    backgroundColor: theme.colors.error,
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: theme.colors.white,
+    borderColor: '#fecaca',
     borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.sm,
-    marginTop: theme.spacing.sm,
+    padding: theme.spacing.md,
+    marginTop: theme.spacing.md,
+    marginHorizontal: theme.spacing.xs,
     ...theme.shadows.elegant,
   },
   signOutContent: {
@@ -667,41 +636,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   signOutIconContainer: {
-    marginRight: theme.spacing.sm,
+    marginRight: theme.spacing.md,
   },
   signOutTitle: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.medium,
-    color: theme.colors.white,
-    letterSpacing: -0.1,
+    color: theme.colors.error,
+    letterSpacing: -0.2,
   },
   appInfo: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.sm,
-    marginTop: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
+    padding: theme.spacing.md,
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
     borderWidth: 1,
     borderColor: theme.colors.border.light,
     alignItems: 'center',
   },
   appName: {
-    fontSize: 11,
+    fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.secondary,
-    letterSpacing: -0.1,
   },
   appVersion: {
-    fontSize: 10,
+    fontSize: theme.typography.sizes.xs,
     color: theme.colors.text.muted,
     textAlign: 'center',
-    marginTop: 2,
   },
   appTagline: {
-    fontSize: 10,
+    fontSize: theme.typography.sizes.xs,
     color: theme.colors.text.light,
     textAlign: 'center',
-    marginTop: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
   },
 });
 

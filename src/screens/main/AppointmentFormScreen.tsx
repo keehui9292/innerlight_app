@@ -425,11 +425,11 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
 
   const getStatusText = () => {
     if (paymentStatus === 'paid') {
-      return 'Confirmed';
+      return 'CONFIRMED';
     } else if (successData?.payment_required) {
-      return isPollingPayment ? 'Checking Payment...' : 'Pending Payment';
+      return isPollingPayment ? 'CHECKING PAYMENT...' : 'PENDING PAYMENT';
     } else {
-      return successData?.appointment.status.toUpperCase() || 'Pending';
+      return successData?.appointment.status.toUpperCase() || 'PENDING';
     }
   };
 
@@ -664,24 +664,14 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
               </View>
             </View>
 
-            {successData.payment_required && (
+            {successData.payment_required && successData.payment_url && (
               <View style={styles.successDetailItem}>
                 <Text style={styles.successDetailLabel}>Payment</Text>
-                {paymentStatus === 'paid' ? (
-                  <Text style={[styles.successDetailValue, {color: theme.colors.success, fontWeight: theme.typography.weights.medium}]}>
-                    Completed
+                <TouchableOpacity onPress={() => handlePaymentRedirect(successData.payment_url!)}>
+                  <Text style={[styles.successDetailValue, {color: theme.colors.primary, textDecorationLine: 'underline'}]}>
+                    Complete Payment
                   </Text>
-                ) : successData.payment_url ? (
-                  <TouchableOpacity onPress={() => handlePaymentRedirect(successData.payment_url!)}>
-                    <Text style={[styles.successDetailValue, {color: theme.colors.primary, textDecorationLine: 'underline'}]}>
-                      Complete Payment
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <Text style={[styles.successDetailValue, {color: theme.colors.text.muted}]}>
-                    Payment link not available
-                  </Text>
-                )}
+                </TouchableOpacity>
               </View>
             )}
           </View>
