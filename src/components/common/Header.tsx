@@ -8,7 +8,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft } from 'lucide-react-native';
+import WebSafeIcon from './WebSafeIcon';
 import { theme } from '../../constants/theme';
 
 interface HeaderProps {
@@ -56,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({
       <View style={styles.sideContainer}>
         {showBackButton && (
           <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-            <ArrowLeft size={24} color={theme.colors.text.primary} />
+            <WebSafeIcon name="ArrowLeft" size={24} color={theme.colors.text.primary} />
           </TouchableOpacity>
         )}
       </View>

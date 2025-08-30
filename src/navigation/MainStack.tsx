@@ -1,6 +1,6 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Calendar, User, MessageSquare } from 'lucide-react-native';
+import WebSafeIcon from '../components/common/WebSafeIcon';
 import HomeScreen from '../screens/main/HomeScreen';
 import AppointmentScreen from '../screens/main/AppointmentScreen';
 import AppointmentFormScreen from '../screens/main/AppointmentFormScreen';
@@ -36,19 +36,21 @@ const TabNavigator = () => {
           marginTop: 5
         },
         tabBarIcon: ({ color, size, focused }) => {
-          let IconComponent: any;
+          let iconName: string;
 
           if (route.name === 'Home') {
-            IconComponent = Home;
+            iconName = 'Home';
           } else if (route.name === 'Appointments') {
-            IconComponent = Calendar;
+            iconName = 'Calendar';
           } else if (route.name === 'Testimonials') {
-            IconComponent = MessageSquare;
+            iconName = 'MessageSquare';
           } else if (route.name === 'Profile') {
-            IconComponent = User;
+            iconName = 'User';
+          } else {
+            iconName = 'Home';
           }
 
-          return <IconComponent color={color} size={focused ? size + 2 : size} />;
+          return <WebSafeIcon name={iconName} color={color} size={focused ? size + 2 : size} />;
         },
       })}
       initialRouteName="Home"

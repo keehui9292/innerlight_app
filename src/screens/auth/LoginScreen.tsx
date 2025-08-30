@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Platform, Alert, StyleSheet, View, Text, TouchableOpacity, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
+import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { useAuth } from '../../context/AuthContext';
 import FormInput from '../../components/common/FormInput';
 import CustomButton from '../../components/common/Button';
@@ -103,7 +103,7 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-              <ArrowLeft size={20} color={theme.colors.text.primary} />
+              <WebSafeIcon name="ArrowLeft" size={20} color={theme.colors.text.primary} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Login Account</Text>
             <View style={styles.placeholder} />

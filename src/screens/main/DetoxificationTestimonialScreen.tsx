@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CheckCircle, Leaf, Calendar } from 'lucide-react-native';
+import WebSafeIcon from '../../components/common/WebSafeIcon';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ApiService from '../../services/apiService';
 import CustomButton from '../../components/common/Button';
@@ -313,7 +313,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
                     {option.label}
                   </Text>
                   {value === option.value && (
-                    <CheckCircle size={18} color={theme.colors.primary} />
+                    <WebSafeIcon name="CheckCircle" size={18} color={theme.colors.primary} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -348,7 +348,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
                     {option.label}
                   </Text>
                   {value === option.value && (
-                    <CheckCircle size={18} color={theme.colors.primary} />
+                    <WebSafeIcon name="CheckCircle" size={18} color={theme.colors.primary} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -379,7 +379,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
                 ]}>
                   {displayDate}
                 </Text>
-                <Calendar size={18} color={theme.colors.text.tertiary} />
+                <WebSafeIcon name="Calendar" size={18} color={theme.colors.text.tertiary} />
               </View>
             </TouchableOpacity>
             {hasError && <Text style={styles.errorText}>{errors[field.name]}</Text>}
@@ -434,7 +434,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.successContainer}>
-          <CheckCircle size={64} color={theme.colors.success} />
+          <WebSafeIcon name="CheckCircle" size={64} color={theme.colors.success} />
           <Text style={styles.successTitle}>Thank You!</Text>
           <Text style={styles.successMessage}>
             Your testimonial has been submitted successfully. We appreciate you sharing your detoxification experience!
@@ -477,7 +477,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
           {/* Header Section */}
           <View style={styles.headerSection}>
             <View style={styles.headerIcon}>
-              <Leaf size={32} color={theme.colors.primary} />
+              <WebSafeIcon name="Leaf" size={32} color={theme.colors.primary} />
             </View>
             <Text style={styles.headerTitle}>
               {testimonialForm?.name || 'Share Your Experience'}

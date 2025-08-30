@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MessageSquare, Star, ChevronRight, Leaf } from 'lucide-react-native';
+import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { theme } from '../../constants/theme';
 import Header from '../../components/common/Header';
 
@@ -13,7 +13,7 @@ interface TestimonialCategory {
   id: string;
   title: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: string;
   onPress: () => void;
 }
 
@@ -23,7 +23,7 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
       id: 'detoxification',
       title: 'Detoxification',
       description: 'Share your detox journey and experience',
-      icon: Leaf,
+      icon: 'Leaf',
       onPress: () => navigation.navigate('DetoxificationTestimonial'),
     },
     // Future categories can be added here
@@ -41,7 +41,7 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
           {/* Header Section */}
           <View style={styles.headerSection}>
             <View style={styles.headerIcon}>
-              <MessageSquare size={32} color={theme.colors.primary} />
+              <WebSafeIcon name="MessageSquare" size={32} color={theme.colors.primary} />
             </View>
             <Text style={styles.headerTitle}>
               Your Voice Matters
@@ -57,7 +57,6 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
             
             <View style={styles.categoriesContainer}>
               {testimonialCategories.map((category) => {
-                const IconComponent = category.icon;
                 return (
                   <TouchableOpacity
                     key={category.id}
@@ -67,7 +66,7 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
                   >
                     <View style={styles.categoryContent}>
                       <View style={styles.categoryIconContainer}>
-                        <IconComponent size={24} color={theme.colors.primary} />
+                        <WebSafeIcon name={category.icon} size={24} color={theme.colors.primary} />
                       </View>
                       
                       <View style={styles.categoryTextContainer}>
@@ -79,7 +78,7 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
                         </Text>
                       </View>
                       
-                      <ChevronRight size={20} color={theme.colors.text.tertiary} />
+                      <WebSafeIcon name="ChevronRight" size={20} color={theme.colors.text.tertiary} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -90,7 +89,7 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
           {/* Info Section */}
           <View style={styles.infoSection}>
             <View style={styles.infoCard}>
-              <Star size={20} color={theme.colors.primary} />
+              <WebSafeIcon name="Star" size={20} color={theme.colors.primary} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoTitle}>Why Share Your Story?</Text>
                 <Text style={styles.infoText}>

@@ -2,20 +2,7 @@ import React, { Fragment, useState, useEffect, useCallback } from 'react';
 import { Platform, Alert, View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { 
-  User, 
-  Settings, 
-  Bell, 
-  Shield, 
-  LogOut, 
-  ChevronRight,
-  Mail,
-  Phone,
-  MapPin,
-  Copy,
-  DollarSign,
-  MessageSquare
-} from 'lucide-react-native';
+import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { useAuth } from '../../context/AuthContext';
 import { TabScreenProps } from '../../types';
 import { theme } from '../../constants/theme';
@@ -92,17 +79,17 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
     {
       label: 'Email',
       value: currentUser?.email || 'Not provided',
-      icon: Mail
+      icon: 'Mail'
     },
     {
       label: 'Phone',
       value: currentUser?.phone || 'Not provided',
-      icon: Phone
+      icon: 'Phone'
     },
     {
       label: 'Role',
       value: currentUser?.role?.charAt(0).toUpperCase() + currentUser?.role?.slice(1) || 'User',
-      icon: User
+      icon: 'User'
     }
   ];
 
@@ -110,31 +97,31 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
     {
       title: 'Payment History',
       description: 'View your payment records',
-      icon: DollarSign,
+      icon: 'DollarSign',
       onPress: () => navigation.navigate('PaymentHistory'),
     },
     {
       title: 'Share Your Story',
       description: 'Submit testimonials and reviews',
-      icon: MessageSquare,
+      icon: 'MessageSquare',
       onPress: () => navigation.navigate('Testimonial'),
     },
     {
       title: 'Account Settings',
       description: 'Manage your personal information',
-      icon: Settings,
+      icon: 'Settings',
       onPress: () => console.log('Account Settings'),
     },
     {
       title: 'Notifications',
       description: 'Configure your notification preferences',
-      icon: Bell,
+      icon: 'Bell',
       onPress: () => console.log('Notifications'),
     },
     {
       title: 'Privacy & Security',
       description: 'Manage your privacy settings',
-      icon: Shield,
+      icon: 'Shield',
       onPress: () => console.log('Privacy & Security'),
     },
   ];
@@ -252,7 +239,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
                     <Text style={styles.referralCode}>
                       {currentUser.referral_code}
                     </Text>
-                    <Copy size={16} color={theme.colors.primary} />
+                    <WebSafeIcon name="Copy" size={16} color={theme.colors.primary} />
                   </View>
                 </TouchableOpacity>
               )}
@@ -264,11 +251,10 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Personal Information</Text>
             <View style={styles.infoCard}>
               {userInfo.map((info, index) => {
-                const IconComponent = info.icon;
                 return (
                   <View key={index} style={styles.infoRow}>
                     <View style={styles.infoIconContainer}>
-                      <IconComponent size={16} color={theme.colors.primary} />
+                      <WebSafeIcon name={info.icon} size={16} color={theme.colors.primary} />
                     </View>
                     <View style={styles.infoContent}>
                       <Text style={styles.infoLabel}>
@@ -341,7 +327,6 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Settings</Text>
             <View style={styles.settingsCard}>
               {menuItems.map((item, index) => {
-                const IconComponent = item.icon;
                 return (
                   <TouchableOpacity
                     key={index}
@@ -354,7 +339,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
                   >
                     <View style={styles.menuItemContent}>
                       <View style={styles.menuIconContainer}>
-                        <IconComponent size={18} color={theme.colors.primary} />
+                        <WebSafeIcon name={item.icon} size={18} color={theme.colors.primary} />
                       </View>
                       
                       <View style={styles.menuTextContent}>
@@ -366,7 +351,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
                         </Text>
                       </View>
                       
-                      <ChevronRight size={16} color={theme.colors.text.tertiary} />
+                      <WebSafeIcon name="ChevronRight" size={16} color={theme.colors.text.tertiary} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -382,7 +367,7 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
           >
             <View style={styles.signOutContent}>
               <View style={styles.signOutIconContainer}>
-                <LogOut size={18} color={theme.colors.white} />
+                <WebSafeIcon name="LogOut" size={18} color={theme.colors.white} />
               </View>
               
               <Text style={styles.signOutTitle}>

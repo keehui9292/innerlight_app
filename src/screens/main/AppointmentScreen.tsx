@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Platform, Alert, RefreshControl, View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Calendar, Clock, MapPin, User, DollarSign } from 'lucide-react-native';
+import WebSafeIcon from '../../components/common/WebSafeIcon';
 import ApiService from '../../services/apiService';
 import CustomButton from '../../components/common/Button';
 import { Appointment, TabScreenProps } from '../../types';
@@ -189,7 +189,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
             // Empty state
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIcon}>
-                <Calendar size={48} color={theme.colors.primary} />
+                <WebSafeIcon name="Calendar" size={48} color={theme.colors.primary} />
               </View>
               <Text style={styles.emptyTitle}>
                 Your schedule awaits
@@ -248,12 +248,12 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
                     {/* Details */}
                     <View style={styles.detailsContainer}>
                       <View style={styles.detailRow}>
-                        <Calendar size={14} color={theme.colors.text.secondary} />
+                        <WebSafeIcon name="Calendar" size={14} color={theme.colors.text.secondary} />
                         <Text style={styles.detailText}>
                           {formatDate(appointment.date || appointment.form_data?.appointment_date || '')}
                         </Text>
                         <View style={styles.detailSeparator} />
-                        <Clock size={14} color={theme.colors.text.secondary} />
+                        <WebSafeIcon name="Clock" size={14} color={theme.colors.text.secondary} />
                         <Text style={styles.detailText}>
                           {formatTime(appointment.time || appointment.form_data?.appointment_time || '')}
                         </Text>
@@ -261,7 +261,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
                       
                       {(appointment.form_data?.full_name || appointment.provider) && (
                         <View style={styles.detailRow}>
-                          <User size={14} color={theme.colors.text.secondary} />
+                          <WebSafeIcon name="User" size={14} color={theme.colors.text.secondary} />
                           <Text style={styles.detailText}>
                             {appointment.form_data?.full_name || appointment.provider}
                           </Text>
@@ -270,7 +270,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
 
                       {appointment.total_price && parseFloat(appointment.total_price) > 0 && (
                         <View style={styles.detailRow}>
-                          <DollarSign size={14} color={theme.colors.text.secondary} />
+                          <WebSafeIcon name="DollarSign" size={14} color={theme.colors.text.secondary} />
                           <Text style={styles.detailText}>
                             ${parseFloat(appointment.total_price).toFixed(2)}
                           </Text>
@@ -291,7 +291,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
         onPress={handleBookAppointment}
         activeOpacity={0.8}
       >
-        <Plus size={24} color={theme.colors.white} />
+        <WebSafeIcon name="Plus" size={24} color={theme.colors.white} />
       </TouchableOpacity>
     </SafeAreaView>
   );

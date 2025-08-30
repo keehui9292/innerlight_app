@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
-import { Eye, EyeOff } from 'lucide-react-native';
+import WebSafeIcon from './WebSafeIcon';
 import { FormInputProps } from '../../types';
 import { theme } from '../../constants/theme';
 
@@ -55,9 +55,9 @@ const FormInput: React.FC<FormInputProps & TextInputProps> = ({
             activeOpacity={0.7}
           >
             {showPassword ? (
-              <EyeOff size={20} color={theme.colors.text.secondary} />
+              <WebSafeIcon name="EyeOff" size={20} color={theme.colors.text.secondary} />
             ) : (
-              <Eye size={20} color={theme.colors.text.secondary} />
+              <WebSafeIcon name="Eye" size={20} color={theme.colors.text.secondary} />
             )}
           </TouchableOpacity>
         )}

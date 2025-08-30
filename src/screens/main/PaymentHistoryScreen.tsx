@@ -1,18 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Platform, View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { 
-  DollarSign,
-  Calendar,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  X,
-  User,
-  FileText,
-  CreditCard
-} from 'lucide-react-native';
+import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { theme } from '../../constants/theme';
 import ApiService from '../../services/apiService';
 import Header from '../../components/common/Header';
@@ -147,9 +136,9 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
   };
 
   const getPaymentStatusIcon = (paymentStatus: string, isPaid: boolean) => {
-    if (isPaid) return CheckCircle;
-    if (paymentStatus === 'pending') return AlertCircle;
-    return XCircle;
+    if (isPaid) return 'CheckCircle';
+    if (paymentStatus === 'pending') return 'AlertCircle';
+    return 'XCircle';
   };
 
   const getPaymentStatusColor = (paymentStatus: string, isPaid: boolean) => {
@@ -198,7 +187,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
             <View style={styles.summaryContainer}>
               <View style={styles.summaryCard}>
                 <View style={styles.summaryIconContainer}>
-                  <DollarSign size={16} color={theme.colors.success} />
+                  <WebSafeIcon name="DollarSign" size={16} color={theme.colors.success} />
                 </View>
                 <View style={styles.summaryContent}>
                   <Text style={styles.summaryValue}>
@@ -210,7 +199,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
               
               <View style={styles.summaryCard}>
                 <View style={styles.summaryIconContainer}>
-                  <AlertCircle size={16} color={theme.colors.primary} />
+                  <WebSafeIcon name="AlertCircle" size={16} color={theme.colors.primary} />
                 </View>
                 <View style={styles.summaryContent}>
                   <Text style={styles.summaryValue}>
@@ -228,7 +217,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
               <Text style={styles.sectionTitle}>Payment Records</Text>
               <View style={styles.paymentHistoryCard}>
                 {paymentHistory.payment_history.map((payment, index) => {
-                  const StatusIcon = getPaymentStatusIcon(payment.payment_status, payment.is_paid);
+                  const statusIconName = getPaymentStatusIcon(payment.payment_status, payment.is_paid);
                   const statusColor = getPaymentStatusColor(payment.payment_status, payment.is_paid);
                   
                   return (
@@ -247,12 +236,12 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                             {payment.appointment_form_name}
                           </Text>
                           <View style={styles.paymentHistoryDetails}>
-                            <Calendar size={14} color={theme.colors.text.tertiary} />
+                            <WebSafeIcon name="Calendar" size={14} color={theme.colors.text.tertiary} />
                             <Text style={styles.paymentHistoryDetailText}>
                               {formatPaymentDate(payment.appointment_date)}
                             </Text>
                             <View style={styles.paymentDetailSeparator} />
-                            <Clock size={14} color={theme.colors.text.tertiary} />
+                            <WebSafeIcon name="Clock" size={14} color={theme.colors.text.tertiary} />
                             <Text style={styles.paymentHistoryDetailText}>
                               {formatPaymentTime(payment.appointment_time)}
                             </Text>
@@ -264,7 +253,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                             ${parseFloat(payment.total_price).toFixed(2)}
                           </Text>
                           <View style={styles.paymentStatusContainer}>
-                            <StatusIcon size={14} color={statusColor} />
+                            <WebSafeIcon name={statusIconName} size={14} color={statusColor} />
                             <Text style={[styles.paymentStatusText, { color: statusColor }]}>
                               {payment.is_paid ? 'Paid' : payment.payment_status}
                             </Text>
@@ -278,7 +267,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <DollarSign size={32} color={theme.colors.text.light} />
+              <WebSafeIcon name="DollarSign" size={32} color={theme.colors.text.light} />
               <Text style={styles.emptyTitle}>No payment history</Text>
               <Text style={styles.emptySubtitle}>
                 Your payment records will appear here once you make payments
@@ -300,7 +289,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Payment Details</Text>
               <TouchableOpacity onPress={closePaymentDetail} style={styles.closeButton}>
-                <X size={24} color={theme.colors.text.secondary} />
+                <WebSafeIcon name="X" size={24} color={theme.colors.text.secondary} />
               </TouchableOpacity>
             </View>
             
@@ -312,11 +301,11 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                     <Text style={styles.modalSectionTitle}>Payment Status</Text>
                     <View style={styles.paymentStatusContainer}>
                       {(() => {
-                        const StatusIcon = getPaymentStatusIcon(selectedPayment.payment_status, selectedPayment.is_paid);
+                        const statusIconName = getPaymentStatusIcon(selectedPayment.payment_status, selectedPayment.is_paid);
                         const statusColor = getPaymentStatusColor(selectedPayment.payment_status, selectedPayment.is_paid);
                         return (
                           <>
-                            <StatusIcon size={16} color={statusColor} />
+                            <WebSafeIcon name={statusIconName} size={16} color={statusColor} />
                             <Text style={[styles.modalStatusText, { color: statusColor }]}>
                               {selectedPayment.is_paid ? 'Paid' : selectedPayment.payment_status}
                             </Text>
@@ -332,7 +321,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                   <Text style={styles.modalSectionTitle}>Appointment Details</Text>
                   <View style={styles.modalDetailItem}>
                     <View style={styles.modalDetailIcon}>
-                      <FileText size={16} color={theme.colors.primary} />
+                      <WebSafeIcon name="FileText" size={16} color={theme.colors.primary} />
                     </View>
                     <View>
                       <Text style={styles.modalDetailLabel}>Service</Text>
@@ -342,7 +331,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                   
                   <View style={styles.modalDetailItem}>
                     <View style={styles.modalDetailIcon}>
-                      <Calendar size={16} color={theme.colors.primary} />
+                      <WebSafeIcon name="Calendar" size={16} color={theme.colors.primary} />
                     </View>
                     <View style={styles.modalDetailContent}>
                       <Text style={styles.modalDetailLabel}>Date & Time</Text>
@@ -358,7 +347,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                   <Text style={styles.modalSectionTitle}>Payment Information</Text>
                   <View style={styles.modalDetailItem}>
                     <View style={styles.modalDetailIcon}>
-                      <DollarSign size={16} color={theme.colors.primary} />
+                      <WebSafeIcon name="DollarSign" size={16} color={theme.colors.primary} />
                     </View>
                     <View>
                       <Text style={styles.modalDetailLabel}>Amount</Text>
@@ -371,7 +360,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                   {selectedPayment.paid_at && (
                     <View style={styles.modalDetailItem}>
                       <View style={styles.modalDetailIcon}>
-                        <CheckCircle size={16} color={theme.colors.success} />
+                        <WebSafeIcon name="CheckCircle" size={16} color={theme.colors.success} />
                       </View>
                       <View>
                         <Text style={styles.modalDetailLabel}>Paid At</Text>
@@ -392,7 +381,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                   {selectedPayment.payment_session_id && (
                     <View style={styles.modalDetailItem}>
                       <View style={styles.modalDetailIcon}>
-                        <CreditCard size={16} color={theme.colors.primary} />
+                        <WebSafeIcon name="CreditCard" size={16} color={theme.colors.primary} />
                       </View>
                       <View style={styles.modalDetailContent}>
                         <Text style={styles.modalDetailLabel}>Payment Session</Text>
@@ -409,7 +398,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                   <Text style={styles.modalSectionTitle}>System Information</Text>
                   <View style={styles.modalDetailItem}>
                     <View style={styles.modalDetailIcon}>
-                      <FileText size={16} color={theme.colors.primary} />
+                      <WebSafeIcon name="FileText" size={16} color={theme.colors.primary} />
                     </View>
                     <View>
                       <Text style={styles.modalDetailLabel}>Appointment ID</Text>
@@ -421,7 +410,7 @@ const PaymentHistoryScreen: React.FC<PaymentHistoryScreenProps> = ({ navigation 
                   
                   <View style={styles.modalDetailItem}>
                     <View style={styles.modalDetailIcon}>
-                      <Calendar size={16} color={theme.colors.primary} />
+                      <WebSafeIcon name="Calendar" size={16} color={theme.colors.primary} />
                     </View>
                     <View>
                       <Text style={styles.modalDetailLabel}>Created</Text>

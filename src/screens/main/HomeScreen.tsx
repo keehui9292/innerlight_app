@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, Clock, User, Bell } from 'lucide-react-native';
+import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { useAuth } from '../../context/AuthContext';
 import { TabScreenProps } from '../../types';
 import { theme } from '../../constants/theme';
@@ -9,7 +9,7 @@ import { theme } from '../../constants/theme';
 interface QuickAction {
   title: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: string;
   onPress: () => void;
   color: string;
   bgColor: string;
@@ -22,7 +22,7 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
     {
       title: 'Book Appointment',
       description: 'Schedule a new appointment',
-      icon: Calendar,
+      icon: 'Calendar',
       onPress: () => navigation.navigate('Appointments'),
       color: theme.colors.primary,
       bgColor: '#f5f3f1'
@@ -30,7 +30,7 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
     {
       title: 'View Schedule',
       description: 'See your upcoming appointments',
-      icon: Clock,
+      icon: 'Clock',
       onPress: () => navigation.navigate('Appointments'),
       color: theme.colors.primary,
       bgColor: '#f5f3f1'
@@ -38,7 +38,7 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
     {
       title: 'Profile Settings',
       description: 'Manage your account',
-      icon: User,
+      icon: 'User',
       onPress: () => navigation.navigate('Profile'),
       color: theme.colors.primary,
       bgColor: '#f5f3f1'
@@ -46,7 +46,7 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
     {
       title: 'Notifications',
       description: 'View your notifications',
-      icon: Bell,
+      icon: 'Bell',
       onPress: () => console.log('Notifications'),
       color: theme.colors.primary,
       bgColor: '#f5f3f1'
@@ -95,7 +95,6 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
             
             <View style={styles.actionsGrid}>
               {quickActions.map((action, index) => {
-                const IconComponent = action.icon;
                 return (
                   <TouchableOpacity
                     key={index}
@@ -104,7 +103,7 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
                     activeOpacity={0.8}
                   >
                     <View style={styles.actionIconContainer}>
-                      <IconComponent size={18} color={theme.colors.primary} />
+                      <WebSafeIcon name={action.icon} size={18} color={theme.colors.primary} />
                     </View>
                     
                     <Text style={styles.actionTitle}>
@@ -127,7 +126,7 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
             
             <View style={styles.activityCard}>
               <View style={styles.emptyState}>
-                <Calendar size={32} color={theme.colors.text.light} />
+                <WebSafeIcon name="Calendar" size={32} color={theme.colors.text.light} />
                 <Text style={styles.emptyTitle}>
                   No recent activity
                 </Text>
