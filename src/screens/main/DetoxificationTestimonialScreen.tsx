@@ -66,7 +66,7 @@ interface DetoxificationTestimonialScreenProps {
 
 const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenProps> = ({ navigation }) => {
   const [testimonialForm, setTestimonialForm] = useState<TestimonialForm | null>(null);
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<Record<string, string | boolean>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -88,10 +88,20 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
         setTestimonialForm(response.data);
         
         // Initialize form data with empty values
-        const initialData: Record<string, string> = {};
+        const initialData: Record<string, string | boolean> = {};
         response.data.fields.forEach((field) => {
           initialData[field.name] = '';
         });
+
+        // Add the agreed_to_terms field
+        initialData['agreed_to_terms'] = false;
+        response.data.fields.push({
+          type: 'checkbox',
+          name: 'agreed_to_terms',
+          label: 'I agree to the terms and conditions',
+          required: '1',
+        });
+
         setFormData(initialData);
       } else {
         Alert.alert('Error', 'Failed to load testimonial form');
@@ -119,9 +129,14 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
     if (!testimonialForm) return false;
 
     testimonialForm.fields.forEach((field) => {
-      if (field.required === '1' && !formData[field.name]?.trim()) {
-        newErrors[field.name] = `${field.label} is required`;
-        isValid = false;
+      if (field.required === '1') {
+        if (field.type === 'checkbox' && !formData[field.name]) {
+          newErrors[field.name] = `You must agree to the ${field.label.toLowerCase()}`;
+          isValid = false;
+        } else if (typeof formData[field.name] === 'string' && !(formData[field.name] as any)?.trim()) {
+          newErrors[field.name] = `${field.label} is required`;
+          isValid = false;
+        }
       }
     });
 
@@ -129,7 +144,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
     return isValid;
   };
 
-  const handleInputChange = (fieldName: string, value: string) => {
+  const handleInputChange = (fieldName: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [fieldName]: value
@@ -181,10 +196,13 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
       setSubmitting(true);
       
       // Filter out empty values
-      const cleanedData: Record<string, string> = {};
+      const cleanedData: Record<string, string | boolean> = {};
       Object.keys(formData).forEach(key => {
-        if (formData[key]?.trim()) {
-          cleanedData[key] = formData[key].trim();
+        const value = formData[key];
+        if (typeof value === 'boolean') {
+          cleanedData[key] = value;
+        } else if (typeof value === 'string' && value.trim()) {
+          cleanedData[key] = value.trim();
         }
       });
 
@@ -250,7 +268,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
 
   const renderField = (field: FormField) => {
     const hasError = !!errors[field.name];
-    const value = formData[field.name] || '';
+    const value = formData[field.name];
 
     switch (field.type) {
       case 'text':
@@ -265,7 +283,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
             <TextInput
               style={[styles.textInput, hasError && styles.textInputError]}
               placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-              value={value}
+              value={String(value)}
               onChangeText={(text) => handleInputChange(field.name, text)}
               keyboardType={field.type === 'number' ? 'numeric' : field.type === 'email' ? 'email-address' : 'default'}
               autoCapitalize={field.type === 'email' ? 'none' : 'sentences'}
@@ -285,7 +303,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
             <TextInput
               style={[styles.textAreaInput, hasError && styles.textInputError]}
               placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-              value={value}
+              value={String(value)}
               onChangeText={(text) => handleInputChange(field.name, text)}
               multiline
               numberOfLines={6}
@@ -365,8 +383,30 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
           </View>
         );
 
+      case 'checkbox':
+        return (
+          <View key={field.name} style={styles.fieldContainer}>
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => handleInputChange(field.name, !value)}
+              activeOpacity={0.8}
+            >
+              <WebSafeIcon 
+                name={value ? "Checkbox" : "Square"} 
+                size={24} 
+                color={hasError ? theme.colors.error : value ? theme.colors.primary : theme.colors.text.tertiary} 
+              />
+              <Text style={styles.checkboxLabel}>
+                {field.label}
+                {field.required === '1' && <Text style={styles.requiredStar}> *</Text>}
+              </Text>
+            </TouchableOpacity>
+            {hasError && <Text style={styles.errorText}>{errors[field.name]}</Text>}
+          </View>
+        );
+
       case 'date':
-        const dateValue = value ? new Date(value) : null;
+        const dateValue = value ? new Date(value as any) : null;
         const displayDate = dateValue ? dateValue.toLocaleDateString() : 'Select Date';
         
         return (
@@ -405,7 +445,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
               <TextInput
                 style={[styles.textInput, { marginTop: theme.spacing.sm }]}
                 placeholder="YYYY-MM-DD"
-                value={value}
+                value={String(value)}
                 onChangeText={(text) => {
                   handleInputChange(field.name, text);
                   setShowDatePicker(false);
@@ -512,7 +552,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
             <CustomButton
               title={submitting ? "Submitting..." : "Submit Testimonial"}
               onPress={handleSubmit}
-              disabled={submitting}
+              disabled={submitting || !formData['agreed_to_terms']}
               colorScheme="primary"
               fullWidth
             />
@@ -599,6 +639,12 @@ const styles = StyleSheet.create({
   },
   fieldContainer: {
     marginBottom: theme.spacing.sm,
+  },
+  checkboxLabel: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    letterSpacing: -0.1,
   },
   fieldLabel: {
     fontSize: theme.typography.sizes.md,
@@ -692,6 +738,11 @@ const styles = StyleSheet.create({
   },
   dateInputPlaceholder: {
     color: theme.colors.text.tertiary,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
   },
   submitContainer: {
     alignItems: 'center',

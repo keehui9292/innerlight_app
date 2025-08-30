@@ -18,14 +18,14 @@ export function GluestackUIProvider({
   const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
-    setColorScheme(mode);
+    // setColorScheme(mode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
   return (
     <View
       style={[
-        config[colorScheme!],
+        colorScheme ? config[colorScheme] : {},
         { flex: 1, height: '100%', width: '100%' },
         props.style,
       ]}
