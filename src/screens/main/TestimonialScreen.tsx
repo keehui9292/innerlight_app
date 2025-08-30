@@ -1,9 +1,31 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { theme } from '../../constants/theme';
 import Header from '../../components/common/Header';
+import ApiService from '../../services/apiService';
+import TestimonialCard from '../../components/common/TestimonialCard';
+
+interface Testimonial {
+  id: string;
+  template: {
+    name: string;
+    has_daily_tracking: boolean;
+    diary_days: number;
+  };
+  status: string;
+  submitted_at: string;
+  tracking: {
+    completed_days: number;
+    total_days: number;
+    progress_percentage: number;
+    entries: Array<{
+      day_number: number;
+      tracking_data: Record<string, string>;
+    }>;
+  };
+}
 
 interface TestimonialScreenProps {
   navigation: any;
@@ -18,6 +40,36 @@ interface TestimonialCategory {
 }
 
 const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const fetchTestimonials = async () => {
+    try {
+      setLoading(true);
+      const response = await ApiService.getTestimonials();
+      if (response.success && response.data) {
+        setTestimonials(response.data);
+      } else {
+        // Handle error
+      }
+    } catch (error) {
+      // Handle error
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTestimonials();
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchTestimonials();
+    setRefreshing(false);
+  }, []);
+
   const testimonialCategories: TestimonialCategory[] = [
     {
       id: 'detoxification',
@@ -29,6 +81,10 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
     // Future categories can be added here
   ];
 
+  const renderItem = ({ item }: { item: Testimonial }) => (
+    <TestimonialCard testimonial={item} />
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Share Your Story" />
@@ -36,6 +92,7 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View style={styles.content}>
           {/* Header Section */}
@@ -84,6 +141,21 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
                 );
               })}
             </View>
+          </View>
+
+          {/* Submitted Testimonials Section */}
+          <View style={styles.testimonialsSection}>
+            <Text style={styles.sectionTitle}>Submitted Testimonials</Text>
+            {loading ? (
+              <ActivityIndicator style={styles.loader} size="large" color={theme.colors.primary} />
+            ) : (
+              <FlatList
+                data={testimonials}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false} // To disable FlatList's own scrolling
+              />
+            )}
           </View>
 
           {/* Info Section */}
@@ -223,6 +295,12 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.text.secondary,
     lineHeight: 20,
+  },
+  testimonialsSection: {
+    marginTop: theme.spacing.lg,
+  },
+  loader: {
+    marginVertical: theme.spacing.lg,
   },
 });
 

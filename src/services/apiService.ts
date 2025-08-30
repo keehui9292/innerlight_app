@@ -455,6 +455,10 @@ class ApiService {
     return this.post('/feedback/detoxification', formData);
   }
 
+  async getTestimonials(): Promise<ApiResponse<any[]>> {
+    return this.get<any[]>('/testimonials');
+  }
+
   // Notifications
   async getNotifications(): Promise<ApiResponse<any[]>> {
     return this.get<any[]>('/notifications');
