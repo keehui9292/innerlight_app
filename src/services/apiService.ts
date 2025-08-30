@@ -117,6 +117,14 @@ class ApiService {
       const responseData = await response.json().catch(() => ({}));
       
       if (!response.ok) {
+        // If it's a validation error (422) or similar, return the structured error response
+        if (response.status === 422 || responseData.errors) {
+          return {
+            success: false,
+            message: responseData.message || 'Validation failed',
+            errors: responseData.errors || {}
+          };
+        }
         throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
       }
 
@@ -401,6 +409,50 @@ class ApiService {
 
   async leaveEvent(eventId: string): Promise<ApiResponse<null>> {
     return this.post<null>(`/events/${eventId}/leave`);
+  }
+
+  // Testimonials
+  async getDetoxificationTestimonialForm(): Promise<ApiResponse<{
+    id: string;
+    name: string;
+    description: string | null;
+    slug: string;
+    category: string;
+    category_label: string;
+    fields: Array<{
+      type: string;
+      name: string;
+      label: string;
+      required?: string;
+      placeholder?: string | null;
+      options?: Array<{
+        value: string;
+        label: string;
+        price?: number;
+      }> | null;
+    }>;
+    requires_photos: boolean;
+    requires_before_after: boolean;
+    has_daily_tracking: boolean;
+    diary_days: number;
+    website: {
+      id: string;
+      name: string;
+      subdomain: string;
+      logo: string | null;
+    };
+  }>> {
+    return this.get('/feedback/detoxification');
+  }
+
+  async submitDetoxificationTestimonial(formData: Record<string, any>): Promise<ApiResponse<{
+    testimonial_id: string;
+    status: string;
+    submitted_at: string;
+    has_daily_tracking: boolean;
+    diary_days: number;
+  }>> {
+    return this.post('/feedback/detoxification', formData);
   }
 
   // Notifications

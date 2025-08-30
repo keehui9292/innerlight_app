@@ -1,12 +1,14 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Calendar, User } from 'lucide-react-native';
+import { Home, Calendar, User, MessageSquare } from 'lucide-react-native';
 import HomeScreen from '../screens/main/HomeScreen';
 import AppointmentScreen from '../screens/main/AppointmentScreen';
 import AppointmentFormScreen from '../screens/main/AppointmentFormScreen';
 import AppointmentDetailsScreen from '../screens/main/AppointmentDetailsScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import PaymentHistoryScreen from '../screens/main/PaymentHistoryScreen';
+import TestimonialScreen from '../screens/main/TestimonialScreen';
+import DetoxificationTestimonialScreen from '../screens/main/DetoxificationTestimonialScreen';
 import { theme } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -40,6 +42,8 @@ const TabNavigator = () => {
             IconComponent = Home;
           } else if (route.name === 'Appointments') {
             IconComponent = Calendar;
+          } else if (route.name === 'Testimonials') {
+            IconComponent = MessageSquare;
           } else if (route.name === 'Profile') {
             IconComponent = User;
           }
@@ -61,6 +65,13 @@ const TabNavigator = () => {
         component={AppointmentScreen}
         options={{
           tabBarLabel: 'Appointments',
+        }}
+      />
+      <Tab.Screen 
+        name="Testimonials" 
+        component={TestimonialScreen}
+        options={{
+          tabBarLabel: 'Testimonials',
         }}
       />
       <Tab.Screen 
@@ -86,6 +97,8 @@ const MainStack = () => {
       <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} />
       <Stack.Screen name="AppointmentDetails" component={AppointmentDetailsScreen} />
       <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
+      <Stack.Screen name="Testimonial" component={TestimonialScreen} />
+      <Stack.Screen name="DetoxificationTestimonial" component={DetoxificationTestimonialScreen} />
     </Stack.Navigator>
   );
 };

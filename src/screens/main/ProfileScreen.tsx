@@ -13,7 +13,8 @@ import {
   Phone,
   MapPin,
   Copy,
-  DollarSign
+  DollarSign,
+  MessageSquare
 } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { TabScreenProps } from '../../types';
@@ -111,6 +112,12 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
       description: 'View your payment records',
       icon: DollarSign,
       onPress: () => navigation.navigate('PaymentHistory'),
+    },
+    {
+      title: 'Share Your Story',
+      description: 'Submit testimonials and reviews',
+      icon: MessageSquare,
+      onPress: () => navigation.navigate('Testimonial'),
     },
     {
       title: 'Account Settings',
