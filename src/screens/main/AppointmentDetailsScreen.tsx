@@ -9,13 +9,13 @@ import {
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, Clock, User, Mail, Phone, FileText, Plus } from 'lucide-react-native';
 import CustomButton from '../../components/common/Button';
 import { theme } from '../../constants/theme';
 import { Appointment } from '../../types';
 import * as ExpoCalendar from 'expo-calendar';
 import Header from '../../components/common/Header';
 import ApiService from '../../services/apiService';
+import WebSafeIcon from '../../components/common/WebSafeIcon';
 interface AppointmentDetailsScreenProps {
   navigation: any;
   route: any;
@@ -279,19 +279,19 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
       switch (key.toLowerCase()) {
         case 'full_name':
         case 'name':
-          return <User size={16} color={theme.colors.text.secondary} />;
+          return <WebSafeIcon name="User" size={16} color={theme.colors.text.secondary} />;
         case 'email':
-          return <Mail size={16} color={theme.colors.text.secondary} />;
+          return <WebSafeIcon name="Mail" size={16} color={theme.colors.text.secondary} />;
         case 'phone':
-          return <Phone size={16} color={theme.colors.text.secondary} />;
+          return <WebSafeIcon name="Phone" size={16} color={theme.colors.text.secondary} />;
         case 'appointment_date':
-          return <Calendar size={16} color={theme.colors.text.secondary} />;
+          return <WebSafeIcon name="Calendar" size={16} color={theme.colors.text.secondary} />;
         case 'appointment_time':
-          return <Clock size={16} color={theme.colors.text.secondary} />;
+          return <WebSafeIcon name="Clock" size={16} color={theme.colors.text.secondary} />;
         case 'notes':
-          return <FileText size={16} color={theme.colors.text.secondary} />;
+          return <WebSafeIcon name="FileText" size={16} color={theme.colors.text.secondary} />;
         default:
-          return <FileText size={16} color={theme.colors.text.secondary} />;
+          return <WebSafeIcon name="FileText" size={16} color={theme.colors.text.secondary} />;
       }
     };
 
@@ -391,7 +391,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
             {/* Show appointment ID */}
             <View style={styles.formDataItem}>
               <View style={styles.formDataIcon}>
-                <FileText size={16} color={theme.colors.text.secondary} />
+                <WebSafeIcon name="FileText" size={16} color={theme.colors.text.secondary} />
               </View>
               <View style={styles.formDataContent}>
                 <Text style={styles.formDataLabel}>Appointment ID</Text>
@@ -402,7 +402,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
             {/* Show creation date */}
             <View style={styles.formDataItem}>
               <View style={styles.formDataIcon}>
-                <Calendar size={16} color={theme.colors.text.secondary} />
+                <WebSafeIcon name="Calendar" size={16} color={theme.colors.text.secondary} />
               </View>
               <View style={styles.formDataContent}>
                 <Text style={styles.formDataLabel}>Created</Text>
@@ -430,7 +430,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
               fullWidth
             >
               <View style={styles.buttonContent}>
-                <Plus size={16} color={theme.colors.primary} />
+                <WebSafeIcon name="Plus" size={16} color={theme.colors.primary} />
                 <Text style={styles.calendarButtonText}>Add to Calendar</Text>
               </View>
             </CustomButton>

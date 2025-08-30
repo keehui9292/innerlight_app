@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import WebSafeIcon from '../../components/common/WebSafeIcon';
@@ -72,6 +73,7 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
   const [successData, setSuccessData] = useState<SubmissionResponse | null>(null);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [currentDateField, setCurrentDateField] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   useEffect(() => {
     fetchTestimonialForm();
@@ -103,6 +105,12 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
       setLoading(false);
     }
   };
+
+  const onRefresh = useCallback(async (): Promise<void> => {
+    setRefreshing(true);
+    await fetchTestimonialForm();
+    setRefreshing(false);
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -471,7 +479,12 @@ const DetoxificationTestimonialScreen: React.FC<DetoxificationTestimonialScreenP
       
       <ScrollView 
         style={styles.scrollView}
+        contentContainerStyle={Platform.OS === 'web' ? { flexGrow: 1 } : undefined}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         <View style={styles.content}>
           {/* Header Section */}
@@ -521,6 +534,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    ...(Platform.OS === 'web' && {
+      height: '100vh' as any,
+      overflow: 'hidden' as any,
+    }),
   },
   loadingContainer: {
     flex: 1,
@@ -534,11 +551,19 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    ...(Platform.OS === 'web' && {
+      overflow: 'auto' as any,
+      height: '100%' as any,
+      maxHeight: '100vh' as any,
+    }),
   },
   content: {
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: 100, // Extra padding for better scrolling experience
+    ...(Platform.OS === 'web' && {
+      minHeight: '100%' as any,
+    }),
   },
   headerSection: {
     alignItems: 'center',
