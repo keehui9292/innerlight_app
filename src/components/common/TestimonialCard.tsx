@@ -1,35 +1,73 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { theme } from '../../constants/theme';
 import WebSafeIcon from './WebSafeIcon';
+
+interface FormField {
+  name: string;
+  label: string;
+  type: string;
+  options?: Array<{
+    value: string;
+    label: string;
+  }> | null;
+}
+
+interface TrackingEntry {
+  tracking_date: string;
+  tracking_data: Record<string, string> | any[];
+  photos: any[];
+  notes: string | null;
+  created_at: string;
+}
+
+interface DailyEntry extends TrackingEntry {
+  day_number: number;
+}
 
 interface Testimonial {
   id: string;
   template: {
+    id: string;
     name: string;
+    slug: string;
+    category: string;
+    category_label: string;
     has_daily_tracking: boolean;
     diary_days: number;
+    initial_fields?: FormField[];
+    daily_fields?: FormField[];
+    initial_input_type?: string;
+    daily_input_type?: string;
   };
   status: string;
+  is_public: boolean;
   submitted_at: string;
+  approved_at: string | null;
+  form_data: Record<string, any>;
+  photos: any[];
+  before_after_photos: any[];
   tracking: {
     completed_days: number;
     total_days: number;
     progress_percentage: number;
-    entries: Array<{
-      day_number: number;
-      tracking_data: Record<string, string>;
-    }>;
+    initial_entry?: TrackingEntry;
+    daily_entries: Record<string, DailyEntry>;
   };
 }
 
 interface TestimonialCardProps {
   testimonial: Testimonial;
+  onPress?: () => void;
 }
 
-const TestimonialCard: React.FC<TestimonialCardProps> = ({ testimonial }) => {
+const TestimonialCard: React.FC<TestimonialCardProps> = ({ testimonial, onPress }) => {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
       <View style={styles.header}>
         <Text style={styles.title}>{testimonial.template.name}</Text>
         <Text style={styles.status}>{testimonial.status}</Text>
@@ -38,31 +76,35 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ testimonial }) => {
         <Text style={styles.date}>Submitted on: {new Date(testimonial.submitted_at).toLocaleDateString()}</Text>
         {testimonial.template.has_daily_tracking && (
           <View style={styles.trackingContainer}>
-            <WebSafeIcon name="TrendingUp" size={18} color={theme.colors.primary} />
+            <WebSafeIcon name="TrendingUp" size={14} color={theme.colors.primary} />
             <Text style={styles.trackingText}>
-              Tracking Progress: {testimonial.tracking.completed_days} / {testimonial.tracking.total_days} days
+              Progress: {testimonial.tracking.completed_days}/{testimonial.tracking.total_days} days
             </Text>
           </View>
         )}
+        <View style={styles.chevronContainer}>
+          <WebSafeIcon name="ChevronRight" size={16} color={theme.colors.text.tertiary} />
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
     borderWidth: 1,
     borderColor: theme.colors.border.light,
+    ...theme.shadows.light,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
   },
   title: {
     fontSize: theme.typography.sizes.lg,
@@ -74,20 +116,29 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     textTransform: 'capitalize',
   },
-  body: {},
+  body: {
+    position: 'relative',
+    paddingRight: theme.spacing.lg,
+  },
   date: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.xs,
     color: theme.colors.text.tertiary,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
   trackingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   trackingText: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     color: theme.colors.text.primary,
+  },
+  chevronContainer: {
+    position: 'absolute',
+    right: theme.spacing.md,
+    top: '50%',
+    transform: [{ translateY: -10 }],
   },
 });
 

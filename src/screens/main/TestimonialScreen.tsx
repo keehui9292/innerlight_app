@@ -7,23 +7,56 @@ import Header from '../../components/common/Header';
 import ApiService from '../../services/apiService';
 import TestimonialCard from '../../components/common/TestimonialCard';
 
+interface FormField {
+  name: string;
+  label: string;
+  type: string;
+  options?: Array<{
+    value: string;
+    label: string;
+  }> | null;
+}
+
+interface TrackingEntry {
+  tracking_date: string;
+  tracking_data: Record<string, string> | any[];
+  photos: any[];
+  notes: string | null;
+  created_at: string;
+}
+
+interface DailyEntry extends TrackingEntry {
+  day_number: number;
+}
+
 interface Testimonial {
   id: string;
   template: {
+    id: string;
     name: string;
+    slug: string;
+    category: string;
+    category_label: string;
     has_daily_tracking: boolean;
     diary_days: number;
+    initial_fields?: FormField[];
+    daily_fields?: FormField[];
+    initial_input_type?: string;
+    daily_input_type?: string;
   };
   status: string;
+  is_public: boolean;
   submitted_at: string;
+  approved_at: string | null;
+  form_data: Record<string, any>;
+  photos: any[];
+  before_after_photos: any[];
   tracking: {
     completed_days: number;
     total_days: number;
     progress_percentage: number;
-    entries: Array<{
-      day_number: number;
-      tracking_data: Record<string, string>;
-    }>;
+    initial_entry?: TrackingEntry;
+    daily_entries: Record<string, DailyEntry>;
   };
 }
 
@@ -41,20 +74,29 @@ interface TestimonialCategory {
 
 const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonialTemplates, setTestimonialTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const fetchTestimonials = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.getTestimonials();
-      if (response.success && response.data) {
-        setTestimonials(response.data);
-      } else {
-        // Handle error
+      
+      // Fetch both testimonials and templates
+      const [testimonialsResponse, templatesResponse] = await Promise.all([
+        ApiService.getTestimonials(),
+        ApiService.getTestimonialTemplates()
+      ]);
+      
+      if (testimonialsResponse.success && testimonialsResponse.data) {
+        setTestimonials(testimonialsResponse.data);
+      }
+      
+      if (templatesResponse.success && templatesResponse.data) {
+        setTestimonialTemplates(templatesResponse.data);
       }
     } catch (error) {
-      // Handle error
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -64,25 +106,70 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
     fetchTestimonials();
   }, []);
 
+  // Listen for navigation focus to refresh data when returning to screen
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchTestimonials();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchTestimonials();
     setRefreshing(false);
   }, []);
 
-  const testimonialCategories: TestimonialCategory[] = [
-    {
-      id: 'detoxification',
-      title: 'Detoxification',
-      description: 'Share your detox journey and experience',
-      icon: 'Leaf',
-      onPress: () => navigation.navigate('DetoxificationTestimonial'),
-    },
-    // Future categories can be added here
-  ];
+  // Helper function to get icon based on category
+  const getIconForCategory = (category: string): string => {
+    switch (category.toLowerCase()) {
+      case 'detox':
+      case 'detoxification':
+        return 'Leaf';
+      case 'wellness':
+        return 'Heart';
+      case 'nutrition':
+        return 'Apple';
+      case 'fitness':
+        return 'Activity';
+      case 'mental-health':
+        return 'Brain';
+      case 'spiritual':
+        return 'Sun';
+      default:
+        return 'FileText';
+    }
+  };
+
+  // Helper function to get navigation route based on template slug
+  const getNavigationRoute = (slug: string): string => {
+    // Map template slugs to their respective screens
+    switch (slug.toLowerCase()) {
+      case 'detoxification':
+        return 'DetoxificationTestimonial';
+      // Add more template-specific screens as they're created
+      default:
+        // For now, all templates use the DetoxificationTestimonial screen
+        // This can be expanded to have template-specific screens
+        return 'DetoxificationTestimonial';
+    }
+  };
+
+  // Generate testimonial categories from templates
+  const testimonialCategories: TestimonialCategory[] = testimonialTemplates.map((template) => ({
+    id: template.id,
+    title: template.name,
+    description: template.description || `Share your ${template.name.toLowerCase()} experience`,
+    icon: getIconForCategory(template.category),
+    onPress: () => navigation.navigate(getNavigationRoute(template.slug)),
+  }));
 
   const renderItem = ({ item }: { item: Testimonial }) => (
-    <TestimonialCard testimonial={item} />
+    <TestimonialCard 
+      testimonial={item} 
+      onPress={() => navigation.navigate('TestimonialDetails', { testimonial: item })}
+    />
   );
 
   return (
@@ -98,7 +185,7 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
           {/* Header Section */}
           <View style={styles.headerSection}>
             <View style={styles.headerIcon}>
-              <WebSafeIcon name="MessageSquare" size={32} color={theme.colors.primary} />
+              <WebSafeIcon name="MessageSquare" size={24} color={theme.colors.primary} />
             </View>
             <Text style={styles.headerTitle}>
               Your Voice Matters
@@ -112,42 +199,60 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
           <View style={styles.categoriesSection}>
             <Text style={styles.sectionTitle}>Choose Your Experience</Text>
             
-            <View style={styles.categoriesContainer}>
-              {testimonialCategories.map((category) => {
-                return (
-                  <TouchableOpacity
-                    key={category.id}
-                    style={styles.categoryCard}
-                    activeOpacity={0.8}
-                    onPress={category.onPress}
-                  >
-                    <View style={styles.categoryContent}>
-                      <View style={styles.categoryIconContainer}>
-                        <WebSafeIcon name={category.icon} size={24} color={theme.colors.primary} />
+            {loading ? (
+              <ActivityIndicator style={styles.loader} size="large" color={theme.colors.primary} />
+            ) : testimonialCategories.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <WebSafeIcon name="Package" size={48} color={theme.colors.text.tertiary} />
+                <Text style={styles.emptyTitle}>No Templates Available</Text>
+                <Text style={styles.emptyMessage}>
+                  Testimonial templates are currently being set up. Please check back later.
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.categoriesContainer}>
+                {testimonialCategories.map((category) => {
+                  return (
+                    <TouchableOpacity
+                      key={category.id}
+                      style={styles.categoryCard}
+                      activeOpacity={0.8}
+                      onPress={category.onPress}
+                    >
+                      <View style={styles.categoryContent}>
+                        <View style={styles.categoryIconContainer}>
+                          <WebSafeIcon name={category.icon} size={24} color={theme.colors.primary} />
+                        </View>
+                        
+                        <View style={styles.categoryTextContainer}>
+                          <Text style={styles.categoryTitle}>
+                            {category.title}
+                          </Text>
+                          <Text style={styles.categoryDescription}>
+                            {category.description}
+                          </Text>
+                        </View>
+                        
+                        <WebSafeIcon name="ChevronRight" size={16} color={theme.colors.text.tertiary} />
                       </View>
-                      
-                      <View style={styles.categoryTextContainer}>
-                        <Text style={styles.categoryTitle}>
-                          {category.title}
-                        </Text>
-                        <Text style={styles.categoryDescription}>
-                          {category.description}
-                        </Text>
-                      </View>
-                      
-                      <WebSafeIcon name="ChevronRight" size={20} color={theme.colors.text.tertiary} />
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           {/* Submitted Testimonials Section */}
           <View style={styles.testimonialsSection}>
             <Text style={styles.sectionTitle}>Submitted Testimonials</Text>
-            {loading ? (
-              <ActivityIndicator style={styles.loader} size="large" color={theme.colors.primary} />
+            {testimonials.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <WebSafeIcon name="FileText" size={48} color={theme.colors.text.tertiary} />
+                <Text style={styles.emptyTitle}>No Reviews Found</Text>
+                <Text style={styles.emptyMessage}>
+                  You haven't submitted any testimonials yet. Share your experience by selecting a category above.
+                </Text>
+              </View>
             ) : (
               <FlatList
                 data={testimonials}
@@ -187,7 +292,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xl,
   },
   headerSection: {
@@ -195,13 +300,13 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   headerIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: theme.colors.primaryGhost,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
   },
   headerTitle: {
     fontSize: 24,
@@ -301,6 +406,26 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginVertical: theme.spacing.lg,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.lg,
+  },
+  emptyTitle: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    textAlign: 'center',
+  },
+  emptyMessage: {
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.tertiary,
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 280,
   },
 });
 

@@ -9,6 +9,8 @@ import ProfileScreen from '../screens/main/ProfileScreen';
 import PaymentHistoryScreen from '../screens/main/PaymentHistoryScreen';
 import TestimonialScreen from '../screens/main/TestimonialScreen';
 import DetoxificationTestimonialScreen from '../screens/main/DetoxificationTestimonialScreen';
+import TestimonialDetailsScreen from '../screens/main/TestimonialDetailsScreen';
+import DailyQuestionsScreen from '../screens/main/DailyQuestionsScreen';
 import { theme } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -101,6 +103,8 @@ const MainStack = () => {
       <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
       <Stack.Screen name="Testimonial" component={TestimonialScreen} />
       <Stack.Screen name="DetoxificationTestimonial" component={DetoxificationTestimonialScreen} />
+      <Stack.Screen name="TestimonialDetails" component={TestimonialDetailsScreen} />
+      <Stack.Screen name="DailyQuestions" component={DailyQuestionsScreen} />
     </Stack.Navigator>
   );
 };

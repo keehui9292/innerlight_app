@@ -459,6 +459,21 @@ class ApiService {
     return this.get<any[]>('/testimonials');
   }
 
+  async getTestimonialTemplates(): Promise<ApiResponse<any[]>> {
+    return this.get<any[]>('/testimonial-templates');
+  }
+
+  async submitDailyTracking(testimonialId: string, dayNumber: number, data: {
+    initial_data?: Record<string, string>;
+    daily_data: Record<string, string>;
+  }): Promise<ApiResponse<{
+    day_number: number;
+    initial_data?: Record<string, string>;
+    daily_data: Record<string, string>;
+  }>> {
+    return this.post(`/testimonials/${testimonialId}/day/${dayNumber}`, data);
+  }
+
   // Notifications
   async getNotifications(): Promise<ApiResponse<any[]>> {
     return this.get<any[]>('/notifications');
