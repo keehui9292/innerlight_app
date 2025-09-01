@@ -77,6 +77,7 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
   const [testimonialTemplates, setTestimonialTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
 
   const fetchTestimonials = async () => {
     try {
@@ -104,16 +105,20 @@ const TestimonialScreen: React.FC<TestimonialScreenProps> = ({ navigation }) => 
 
   useEffect(() => {
     fetchTestimonials();
+    setIsInitialLoad(false);
   }, []);
 
   // Listen for navigation focus to refresh data when returning to screen
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      fetchTestimonials();
+      // Only refresh if it's not the initial load
+      if (!isInitialLoad) {
+        fetchTestimonials();
+      }
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, isInitialLoad]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
