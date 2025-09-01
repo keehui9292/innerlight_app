@@ -21,6 +21,7 @@ interface FormField {
   name: string;
   label: string;
   type: string;
+  required?: string;
   options?: Array<{
     value: string;
     label: string;
@@ -132,6 +133,44 @@ const DailyQuestionsScreen: React.FC<DailyQuestionsScreenProps> = ({ navigation,
     // Test alert to verify it's working
     console.log('Submit button clicked!');
 
+    // Validate required fields
+    const validateRequiredFields = () => {
+      const missingFields: string[] = [];
+      
+      // Check initial fields for day 1
+      if (dayNumber === 1 && template?.initial_fields) {
+        template.initial_fields.forEach((field: any) => {
+          if (field.required === "1") {
+            const value = initialFormData[field.name] || '';
+            if (!value.trim()) {
+              missingFields.push(field.label);
+            }
+          }
+        });
+      }
+      
+      // Check daily fields
+      if (template?.daily_fields) {
+        template.daily_fields.forEach((field: any) => {
+          if (field.required === "1") {
+            const value = dailyFormData[field.name] || '';
+            if (!value.trim()) {
+              missingFields.push(field.label);
+            }
+          }
+        });
+      }
+      
+      return missingFields;
+    };
+
+    const missingRequiredFields = validateRequiredFields();
+    if (missingRequiredFields.length > 0) {
+      const fieldList = missingRequiredFields.join(', ');
+      showAlert('Required Fields Missing', `Please fill in the following required fields: ${fieldList}`);
+      return;
+    }
+
     // Basic validation - check if at least some data is provided
     const hasInitialData = dayNumber === 1 && Object.values(initialFormData).some(value => value.trim());
     const hasDailyData = Object.values(dailyFormData).some(value => value.trim());
@@ -226,6 +265,7 @@ const DailyQuestionsScreen: React.FC<DailyQuestionsScreenProps> = ({ navigation,
     const handleChange = isInitial ? handleInitialInputChange : handleDailyInputChange;
     const value = formData[field.name] || '';
     const isDisabled = isCompleted;
+    const isRequired = field.required === "1";
 
     switch (field.type) {
       case 'text':
@@ -234,6 +274,7 @@ const DailyQuestionsScreen: React.FC<DailyQuestionsScreenProps> = ({ navigation,
           <View key={field.name} style={styles.fieldContainer}>
             <Text style={styles.fieldLabel}>
               {field.label}
+              {isRequired && <Text style={styles.requiredStar}> *</Text>}
             </Text>
             <TextInput
               style={[
@@ -254,6 +295,7 @@ const DailyQuestionsScreen: React.FC<DailyQuestionsScreenProps> = ({ navigation,
           <View key={field.name} style={styles.fieldContainer}>
             <Text style={styles.fieldLabel}>
               {field.label}
+              {isRequired && <Text style={styles.requiredStar}> *</Text>}
             </Text>
             <TextInput
               style={[
@@ -276,6 +318,7 @@ const DailyQuestionsScreen: React.FC<DailyQuestionsScreenProps> = ({ navigation,
           <View key={field.name} style={styles.fieldContainer}>
             <Text style={styles.fieldLabel}>
               {field.label}
+              {isRequired && <Text style={styles.requiredStar}> *</Text>}
             </Text>
             <View style={styles.selectContainer}>
               {field.options?.map((option) => (
