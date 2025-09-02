@@ -11,6 +11,7 @@ import TestimonialScreen from '../screens/main/TestimonialScreen';
 import DetoxificationTestimonialScreen from '../screens/main/DetoxificationTestimonialScreen';
 import TestimonialDetailsScreen from '../screens/main/TestimonialDetailsScreen';
 import DailyQuestionsScreen from '../screens/main/DailyQuestionsScreen';
+import WebViewScreen from '../screens/main/WebViewScreen';
 import { theme } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -105,6 +106,7 @@ const MainStack = () => {
       <Stack.Screen name="DetoxificationTestimonial" component={DetoxificationTestimonialScreen} />
       <Stack.Screen name="TestimonialDetails" component={TestimonialDetailsScreen} />
       <Stack.Screen name="DailyQuestions" component={DailyQuestionsScreen} />
+      <Stack.Screen name="WebView" component={WebViewScreen} />
     </Stack.Navigator>
   );
 };

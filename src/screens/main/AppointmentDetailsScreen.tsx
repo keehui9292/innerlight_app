@@ -6,7 +6,6 @@ import {
   Alert,
   StyleSheet,
   Platform,
-  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../../components/common/Button';
@@ -253,23 +252,17 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
     }
   };
 
-  const handleSignMOU = async () => {
+  const handleSignMOU = () => {
     if (!appointment.mou_link) {
       Alert.alert('Error', 'MOU link is not available');
       return;
     }
 
-    try {
-      const supported = await Linking.canOpenURL(appointment.mou_link);
-      if (supported) {
-        await Linking.openURL(appointment.mou_link);
-      } else {
-        Alert.alert('Error', 'Cannot open MOU link');
-      }
-    } catch (error) {
-      console.error('Error opening MOU link:', error);
-      Alert.alert('Error', 'Failed to open MOU link');
-    }
+    // Navigate to WebView screen instead of opening external browser
+    navigation.navigate('WebView', {
+      url: appointment.mou_link,
+      title: 'Sign MOU'
+    });
   };
 
   const renderFormDataItem = (key: string, value: any) => {
