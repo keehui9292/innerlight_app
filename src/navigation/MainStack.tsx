@@ -12,6 +12,8 @@ import DetoxificationTestimonialScreen from '../screens/main/DetoxificationTesti
 import TestimonialDetailsScreen from '../screens/main/TestimonialDetailsScreen';
 import DailyQuestionsScreen from '../screens/main/DailyQuestionsScreen';
 import WebViewScreen from '../screens/main/WebViewScreen';
+import ForumScreen from '../screens/main/ForumScreen';
+import TopicDetailsScreen from '../screens/main/TopicDetailsScreen';
 import { theme } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -45,8 +47,10 @@ const TabNavigator = () => {
             iconName = 'Home';
           } else if (route.name === 'Appointments') {
             iconName = 'Calendar';
-          } else if (route.name === 'Testimonials') {
+          } else if (route.name === 'Forum') {
             iconName = 'MessageSquare';
+          } else if (route.name === 'Testimonials') {
+            iconName = 'FileText';
           } else if (route.name === 'Profile') {
             iconName = 'User';
           } else {
@@ -70,6 +74,13 @@ const TabNavigator = () => {
         component={AppointmentScreen}
         options={{
           tabBarLabel: 'Appointments',
+        }}
+      />
+      <Tab.Screen 
+        name="Forum" 
+        component={ForumScreen}
+        options={{
+          tabBarLabel: 'Forum',
         }}
       />
       <Tab.Screen 
@@ -107,6 +118,7 @@ const MainStack = () => {
       <Stack.Screen name="TestimonialDetails" component={TestimonialDetailsScreen} />
       <Stack.Screen name="DailyQuestions" component={DailyQuestionsScreen} />
       <Stack.Screen name="WebView" component={WebViewScreen} />
+      <Stack.Screen name="TopicDetails" component={TopicDetailsScreen} />
     </Stack.Navigator>
   );
 };

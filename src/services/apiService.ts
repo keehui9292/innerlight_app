@@ -486,6 +486,38 @@ class ApiService {
   async markAllNotificationsAsRead(): Promise<ApiResponse<null>> {
     return this.post<null>('/notifications/read-all');
   }
+
+  // Forum endpoints
+  async getForumAnnouncements(page: number = 1): Promise<ApiResponse<any>> {
+    return this.get(`/forum/announcements?page=${page}`);
+  }
+
+  async getForumTopics(page: number = 1): Promise<ApiResponse<any>> {
+    return this.get(`/forum/topics?page=${page}`);
+  }
+
+  async getTopicDetails(topicId: string): Promise<ApiResponse<any>> {
+    return this.get(`/forum/topics/${topicId}`);
+  }
+
+  async getTopicComments(topicId: string, page: number = 1): Promise<ApiResponse<any>> {
+    return this.get(`/forum/topics/${topicId}/comments?page=${page}`);
+  }
+
+  async createTopic(data: {
+    title: string;
+    content: string;
+    category_id: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post('/forum/topics', data);
+  }
+
+  async createComment(topicId: string, data: {
+    content: string;
+    parent_id?: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post(`/forum/topics/${topicId}/comments`, data);
+  }
 }
 
 export default new ApiService();
