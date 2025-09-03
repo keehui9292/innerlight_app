@@ -70,6 +70,7 @@ const TopicDetailsScreen: React.FC<TopicDetailsScreenProps> = ({ navigation, rou
   const [loadingComments, setLoadingComments] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>('');
   const [submittingComment, setSubmittingComment] = useState<boolean>(false);
+  const [hideComment, setHideComment] = useState<boolean>(true);
   
   const { width } = Dimensions.get('window');
   
@@ -151,10 +152,10 @@ const TopicDetailsScreen: React.FC<TopicDetailsScreenProps> = ({ navigation, rou
       
       const response = await ApiService.getTopicDetails(topicUuid);
       if (response.success && response.data) {
+        setHideComment(response.data.category_id === 24);
         setTopic(response.data);
       }
     } catch (error) {
-      console.error('Error fetching topic details:', error);
       Alert.alert('Error', 'Failed to load topic details');
     } finally {
       setLoading(false);
@@ -210,7 +211,7 @@ const TopicDetailsScreen: React.FC<TopicDetailsScreenProps> = ({ navigation, rou
       } else {
         Alert.alert('Error', response.message || 'Failed to post comment');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error posting comment:', error);
       const errorMessage = error.response?.data?.message || 'An unexpected error occurred.';
       Alert.alert('Error', errorMessage);
@@ -351,7 +352,7 @@ const TopicDetailsScreen: React.FC<TopicDetailsScreenProps> = ({ navigation, rou
           </View>
 
           {/* Comments Section (only for regular topics) */}
-          {!isAnnouncement && topic.category.id !== '24' && (
+          {!hideComment &&(
             <View style={styles.commentsSection}>
               <Text style={styles.sectionTitle}>
                 Comments ({topic.comment_count})
@@ -511,8 +512,8 @@ const styles = StyleSheet.create({
   },
   contentSection: {
     backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm,
     marginBottom: theme.spacing.lg,
     borderWidth: 1,
     borderColor: theme.colors.border.light,
@@ -527,13 +528,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   addCommentSection: {
-    backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
     gap: theme.spacing.md,
-    ...theme.shadows.light,
   },
   commentInput: {
     borderWidth: 1,

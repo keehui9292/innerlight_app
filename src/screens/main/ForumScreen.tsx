@@ -161,11 +161,11 @@ const ForumScreen: React.FC<ForumScreenProps> = ({ navigation }) => {
         <Text style={styles.categoryText}>{post.category.name}</Text>
       </View>
 
-      {post.content && (
+      {/* {post.content && (
         <Text style={styles.postContent} numberOfLines={3}>
           {getContentPreview(post.content)}
         </Text>
-      )}
+      )} */}
 
       <View style={styles.postFooter}>
         <View style={styles.postStats}>
@@ -180,11 +180,12 @@ const ForumScreen: React.FC<ForumScreenProps> = ({ navigation }) => {
               <Text style={styles.statText}>{post.comments_count || post.comment_count}</Text>
             </View>
           )}
+
+          <Text style={styles.timeText}>{formatTime(post.last_activity_at || post.created_at)}</Text>
         </View>
 
         <View style={styles.postMeta}>
           <Text style={styles.authorText}>by {post.user.name}</Text>
-          <Text style={styles.timeText}>{formatTime(post.last_activity_at || post.created_at)}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   categoryText: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.xs,
     color: theme.colors.primary,
     fontWeight: theme.typography.weights.medium,
   },
@@ -382,8 +383,8 @@ const styles = StyleSheet.create({
   },
   authorText: {
     fontSize: theme.typography.sizes.xs,
-    color: theme.colors.text.secondary,
     marginBottom: 2,
+    color: "#999",
   },
   timeText: {
     fontSize: theme.typography.sizes.xs,
