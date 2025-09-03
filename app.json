@@ -33,6 +33,14 @@
       "android",
       "web"
     ],
-    "scheme": "innerlight-community"
+    "scheme": "innerlight-community",
+    "extra": {
+      "eas": {
+        "projectId": "1252d0d6-7228-49c1-983d-a7cb93184a54"
+      }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
