@@ -37,3 +37,6 @@ yarn-error.*
 *.tsbuildinfo
 
 *.lock
+
+*.aab
+*.apk
