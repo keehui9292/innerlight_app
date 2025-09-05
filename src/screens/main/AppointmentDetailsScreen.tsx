@@ -23,8 +23,17 @@ interface AppointmentDetailsScreenProps {
 const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ navigation, route }) => {
   const { appointment: initialAppointment } = route.params || {};
   const [appointment, setAppointment] = useState<Appointment>(initialAppointment);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isInitialMount, setIsInitialMount] = useState<boolean>(true);
+  const appointmentId = initialAppointment?.id;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Initial data fetch
+  useEffect(() => {
+    fetchAppointmentDetails();
+    setIsInitialMount(false);
+  }, [appointmentId]);
+
   // Auto-refresh appointment data when mou_status is pending
   useEffect(() => {
     if (appointment?.mou_status === 'pending') {
@@ -40,48 +49,60 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
         intervalRef.current = null;
       }
     };
-  }, [appointment?.mou_status, appointment?.id]);
+  }, [appointment?.mou_status, appointmentId]);
 
   // Also listen for navigation focus to refresh data when returning to screen
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      if (appointment?.id) {
+      if (appointmentId && !isInitialMount) {
         refreshAppointmentData();
       }
     });
 
     return unsubscribe;
-  }, [navigation, appointment?.id]);
+  }, [navigation, appointmentId, isInitialMount]);
 
-  const refreshAppointmentData = async () => {
-    if (!appointment?.id) return;
+  const fetchAppointmentDetails = async () => {
+    if (!appointmentId) return;
 
     try {
-      const response: any = await ApiService.getAppointments();
-      if (response.success && response.data?.data) {
-        // Handle paginated API response structure
-        const appointmentsArray = response.data.data || [];
-        const updatedAppointment = appointmentsArray.find(
-          (apt: Appointment) => apt.id === appointment.id
-        );
-        if (updatedAppointment) {
-          setAppointment(updatedAppointment);
-          
-          // Clear interval if MOU status changed from pending
-          if (updatedAppointment.mou_status !== 'pending' && intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-          }
+      setLoading(true);
+      const response = await ApiService.getAppointment(appointmentId);
+      if (response.success && response.data) {
+        setAppointment(response.data);
+        
+        // Clear interval if MOU status changed from pending
+        if (response.data.mou_status !== 'pending' && intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
         }
       }
     } catch (error) {
-      console.error('Error refreshing appointment data:', error);
+      console.error('Error fetching appointment details:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const refreshAppointmentData = async () => {
+    await fetchAppointmentDetails();
+  };
   
+  if (loading && !appointment) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header title="Loading..." />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Loading appointment...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (!appointment) {
     return (
       <SafeAreaView style={styles.container}>
+        <Header title="Error" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Appointment not found</Text>
           <CustomButton title="Go Back" onPress={() => navigation.goBack()} />

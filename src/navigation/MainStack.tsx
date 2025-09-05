@@ -14,6 +14,7 @@ import DailyQuestionsScreen from '../screens/main/DailyQuestionsScreen';
 import WebViewScreen from '../screens/main/WebViewScreen';
 import ForumScreen from '../screens/main/ForumScreen';
 import TopicDetailsScreen from '../screens/main/TopicDetailsScreen';
+import CreateTopicScreen from '../screens/main/CreateTopicScreen';
 import { theme } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -119,6 +120,7 @@ const MainStack = () => {
       <Stack.Screen name="DailyQuestions" component={DailyQuestionsScreen} />
       <Stack.Screen name="WebView" component={WebViewScreen} />
       <Stack.Screen name="TopicDetails" component={TopicDetailsScreen} />
+      <Stack.Screen name="CreateTopic" component={CreateTopicScreen} />
     </Stack.Navigator>
   );
 };

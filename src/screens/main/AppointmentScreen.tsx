@@ -17,24 +17,23 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({ navigatio
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [isInitialMount, setIsInitialMount] = useState<boolean>(true);
 
   useEffect(() => {
     fetchAppointments();
+    setIsInitialMount(false);
   }, []);
 
-  // Listen for navigation focus to refresh data when returning from form
+  // Listen for navigation focus to refresh data when returning from any screen
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      // Check if we should refresh (e.g., returning from appointment form)
-      if (route?.params?.refresh) {
+      if (!isInitialMount) {
         fetchAppointments();
-        // Clear the refresh parameter
-        navigation.setParams({ refresh: undefined });
       }
     });
 
     return unsubscribe;
-  }, [navigation, route?.params?.refresh]);
+  }, [navigation, isInitialMount]);
 
   const fetchAppointments = async (): Promise<void> => {
     try {

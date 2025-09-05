@@ -507,7 +507,6 @@ class ApiService {
   async createTopic(data: {
     title: string;
     content: string;
-    category_id: string;
   }): Promise<ApiResponse<any>> {
     return this.post('/forum/topics', data);
   }
@@ -517,6 +516,20 @@ class ApiService {
     parent_id?: string;
   }): Promise<ApiResponse<any>> {
     return this.post(`/forum/topics/${topicId}/comments`, data);
+  }
+
+  async updateComment(commentId: string, data: {
+    content: string;
+  }): Promise<ApiResponse<any>> {
+    return this.put(`/forum/comments/${commentId}`, data);
+  }
+
+  async deleteComment(commentId: string): Promise<ApiResponse<any>> {
+    return this.delete(`/forum/comments/${commentId}`);
+  }
+
+  async getForumCategories(): Promise<ApiResponse<any>> {
+    return this.get('/forum/categories');
   }
 }
 

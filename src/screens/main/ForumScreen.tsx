@@ -81,6 +81,15 @@ const ForumScreen: React.FC<ForumScreenProps> = ({ navigation }) => {
     fetchForumData();
   }, []);
 
+  // Listen for navigation focus to refresh data when returning from any screen
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchForumData();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchForumData();
@@ -113,14 +122,7 @@ const ForumScreen: React.FC<ForumScreenProps> = ({ navigation }) => {
     }
   };
 
-  const stripHtmlTags = (html: string): string => {
-    return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-  };
 
-  const getContentPreview = (html: string, maxLength: number = 150): string => {
-    const text = stripHtmlTags(html);
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
-  };
 
   const handlePostPress = (post: ForumPost) => {
     // Determine if this is an announcement based on is_pinned property
@@ -258,6 +260,15 @@ const ForumScreen: React.FC<ForumScreenProps> = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
+      
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('CreateTopic')}
+        activeOpacity={0.8}
+      >
+        <WebSafeIcon name="Plus" size={24} color={theme.colors.white} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -409,6 +420,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
     maxWidth: 280,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: theme.spacing.md,
+    right: theme.spacing.md,
+    width: 64,
+    height: 64,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.light,
+    borderWidth: 1,
+    borderColor: theme.colors.white,
   },
 });
 

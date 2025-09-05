@@ -12,11 +12,11 @@ import {
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, CheckCircle, Clock, DollarSign } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ApiService from '../../services/apiService';
 import CustomButton from '../../components/common/Button';
 import Header from '../../components/common/Header';
+import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { theme } from '../../constants/theme';
 
 // --- Interfaces Updated to Match Provided API JSON ---
@@ -507,7 +507,7 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
                 style={[styles.dateTimeButton, hasError && styles.inputError]}
                 onPress={() => openDatePicker(field.name)}
               >
-                <Calendar size={20} color={theme.colors.text.secondary} />
+                <WebSafeIcon name="Calendar" size={20} color={theme.colors.text.secondary} />
                 <Text style={styles.dateTimeText}>
                   {value ? new Date(value + 'T00:00:00Z').toLocaleDateString() : 'Select Date'}
                 </Text>
@@ -536,13 +536,13 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
                   onPress={() => setFormData(prev => ({ ...prev, [field.name]: option.value }))}
                 >
                   <View style={styles.optionContent}>
-                    {field.type === 'time' && <Clock size={16} color={theme.colors.text.secondary} />}
+                    {field.type === 'time' && <WebSafeIcon name="Clock" size={16} color={theme.colors.text.secondary} />}
                     <Text style={[styles.optionText, value === option.value && styles.optionTextSelected]}>
                       {option.label}
                     </Text>
                     {field.has_pricing === 'on' && option.price != null && (
                       <View style={styles.priceContainer}>
-                        <DollarSign size={16} color={theme.colors.text.secondary} />
+                        <WebSafeIcon name="DollarSign" size={16} color={theme.colors.text.secondary} />
                         <Text style={styles.priceText}>{option.price}</Text>
                       </View>
                     )}
@@ -584,7 +584,7 @@ const AppointmentFormScreen: React.FC<AppointmentFormScreenProps> = ({ navigatio
   const renderSuccessView = () => (
     <SafeAreaView style={styles.container}>
       <View style={styles.successHeader}>
-        <CheckCircle size={48} color={theme.colors.success} />
+        <WebSafeIcon name="CheckCircle" size={48} color={theme.colors.success} />
         <Text style={styles.successTitle}>Appointment Booked!</Text>
         <Text style={styles.successMessage}>
           {successData?.payment_required 
