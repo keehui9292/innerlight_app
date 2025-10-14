@@ -58,15 +58,29 @@ const LoginScreen: React.FC<StackScreenProps<'Login'>> = ({ navigation }) => {
   const handleLogin = async (): Promise<void> => {
     const isValid = validateForm();
     setIsFormValid(isValid);
-    
+
     if (!isValid) return;
 
     const result = await login(formData.email, formData.password);
-    
+
     if (!result.success) {
-      Alert.alert('Login Failed', result.message || 'Please check your credentials and try again.');
+      // Check if password change is required
+      if (result.must_change_password) {
+        Alert.alert(
+          'Password Change Required',
+          'For security reasons, you need to change your default password.',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.navigate('RequestOTP', { email: formData.email })
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Login Failed', result.message || 'Please check your credentials and try again.');
+      }
     }
-    
+
     setIsFormValid(false);
   };
 

@@ -81,10 +81,12 @@ class ApiService {
     // List of endpoints that don't require authentication
     const publicEndpoints = [
       '/auth/login',
-      '/auth/register', 
+      '/auth/register',
       '/auth/forgot-password',
       '/auth/reset-password',
-      '/auth/verify-email'
+      '/auth/verify-email',
+      '/auth/request-otp',
+      '/auth/verify-otp-change-password'
     ];
     
     // Check if this endpoint requires authentication
@@ -115,8 +117,16 @@ class ApiService {
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
       const responseData = await response.json().catch(() => ({}));
-      
+
       if (!response.ok) {
+        // If it's a password change required error (403)
+        if (response.status === 403 && responseData.must_change_password) {
+          return {
+            success: false,
+            message: responseData.message || 'Password change required',
+            must_change_password: true
+          };
+        }
         // If it's a validation error (422) or similar, return the structured error response
         if (response.status === 422 || responseData.errors) {
           return {
@@ -138,10 +148,12 @@ class ApiService {
     // List of endpoints that don't require authentication
     const publicEndpoints = [
       '/auth/login',
-      '/auth/register', 
+      '/auth/register',
       '/auth/forgot-password',
       '/auth/reset-password',
-      '/auth/verify-email'
+      '/auth/verify-email',
+      '/auth/request-otp',
+      '/auth/verify-otp-change-password'
     ];
     
     // Check if this endpoint requires authentication
@@ -214,15 +226,15 @@ class ApiService {
     return response;
   }
 
-  async login(email: string, password: string): Promise<ApiResponse<LoginResponse>> {
+  async login(email: string, password: string): Promise<ApiResponse<LoginResponse> & { must_change_password?: boolean }> {
     const response = await this.post<LoginResponse>('/auth/login', { email, password });
-    
+
     // Save token to AsyncStorage after successful login
     if (response.success && response.data?.token) {
       await this.saveAuthToken(response.data.token);
     }
-    
-    return response;
+
+    return response as ApiResponse<LoginResponse> & { must_change_password?: boolean };
   }
 
   async logout(): Promise<ApiResponse<null>> {

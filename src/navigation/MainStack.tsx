@@ -70,6 +70,7 @@ const TabNavigator = () => {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
+          title: 'Home | Innerlight'
         }}
       />
       <Tab.Screen 
@@ -77,6 +78,7 @@ const TabNavigator = () => {
         component={AppointmentScreen}
         options={{
           tabBarLabel: 'Appointments',
+          title: 'Appointments | Innerlight'
         }}
       />
       <Tab.Screen 
@@ -84,6 +86,7 @@ const TabNavigator = () => {
         component={ForumScreen}
         options={{
           tabBarLabel: 'Forum',
+          title: 'Forum | Innerlight'
         }}
       />
       <Tab.Screen
@@ -91,6 +94,7 @@ const TabNavigator = () => {
         component={PublicTestimonialsScreen}
         options={{
           tabBarLabel: 'Testimonials',
+          title: 'Testimonials | Innerlight'
         }}
       />
       <Tab.Screen 
@@ -98,6 +102,7 @@ const TabNavigator = () => {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
+          title: 'Profile | Innerlight'
         }}
       />
     </Tab.Navigator>
@@ -112,18 +117,18 @@ const MainStack = () => {
         cardStyle: { backgroundColor: theme.colors.background },
       }}
     >
-      <Stack.Screen name="MainTabs" component={TabNavigator} />
-      <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} />
-      <Stack.Screen name="AppointmentDetails" component={AppointmentDetailsScreen} />
-      <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
-      <Stack.Screen name="Testimonial" component={TestimonialScreen} />
-      <Stack.Screen name="DetoxificationTestimonial" component={DetoxificationTestimonialScreen} />
-      <Stack.Screen name="TestimonialDetails" component={TestimonialDetailsScreen} />
-      <Stack.Screen name="DailyQuestions" component={DailyQuestionsScreen} />
-      <Stack.Screen name="WebView" component={WebViewScreen} />
-      <Stack.Screen name="TopicDetails" component={TopicDetailsScreen} />
-      <Stack.Screen name="CreateTopic" component={CreateTopicScreen} />
-      <Stack.Screen name="DownlineChart" component={DownlineChartScreen} />
+      <Stack.Screen name="MainTabs" component={TabNavigator} options={{ title: 'Innerlight' }}/>
+      <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} options={{ title: 'Appointment Form | Innerlight' }}/>
+      <Stack.Screen name="AppointmentDetails" component={AppointmentDetailsScreen} options={{ title: 'Appointment Details | Innerlight' }}/>
+      <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ title: 'Payment History | Innerlight' }}/>
+      <Stack.Screen name="Testimonial" component={TestimonialScreen} options={{ title: 'Testimonial | Innerlight' }}/>
+      <Stack.Screen name="DetoxificationTestimonial" component={DetoxificationTestimonialScreen} options={{ title: 'Detoxification Testimonial | Innerlight' }}/>
+      <Stack.Screen name="TestimonialDetails" component={TestimonialDetailsScreen} options={{ title: 'Testimonial Details | Innerlight' }}/>
+      <Stack.Screen name="DailyQuestions" component={DailyQuestionsScreen} options={{ title: 'Daily Questions | Innerlight' }}/>
+      <Stack.Screen name="WebView" component={WebViewScreen} options={{ title: 'WebView | Innerlight' }}/>
+      <Stack.Screen name="TopicDetails" component={TopicDetailsScreen} options={{ title: 'Topic Details | Innerlight' }}/>
+      <Stack.Screen name="CreateTopic" component={CreateTopicScreen} options={{ title: 'Create Topic | Innerlight' }}/>
+      <Stack.Screen name="DownlineChart" component={DownlineChartScreen} options={{ title: 'Downline Chart | Innerlight' }}/>
     </Stack.Navigator>
   );
 };

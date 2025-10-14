@@ -74,6 +74,15 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       const response: any = await ApiService.login(email, password);
 
+      // Check if password change is required (403 response)
+      if (!response.success && response.must_change_password) {
+        return {
+          success: false,
+          message: response.message || 'Password change required',
+          must_change_password: true
+        };
+      }
+
       // Handle both response formats:
       // 1. Standard API format: { success: true, data: { user, token } }
       // 2. Direct format: { user, token }
@@ -98,9 +107,9 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      return { 
-        success: false, 
-        message: error.message || 'Network error occurred' 
+      return {
+        success: false,
+        message: error.message || 'Network error occurred'
       };
     } finally {
       setLoading(false);

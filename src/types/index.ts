@@ -62,6 +62,7 @@ export interface AuthResponse {
   message: string;
   user?: User;
   token?: string;
+  must_change_password?: boolean;
 }
 
 export interface ApiError {
@@ -115,6 +116,8 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
+  RequestOTP: { email: string };
+  VerifyOTP: { email: string };
   MainTabs: undefined;
 };
 
