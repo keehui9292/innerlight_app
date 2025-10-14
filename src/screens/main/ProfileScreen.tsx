@@ -95,6 +95,12 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
 
   const menuItems = [
     {
+      title: 'Downline Chart',
+      description: 'View your network organization chart',
+      icon: 'GitBranch',
+      onPress: () => navigation.navigate('DownlineChart'),
+    },
+    {
       title: 'Payment History',
       description: 'View your payment records',
       icon: 'DollarSign',

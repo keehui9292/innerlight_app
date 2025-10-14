@@ -459,6 +459,55 @@ class ApiService {
     return this.get<any[]>('/testimonials');
   }
 
+  async getPublicTestimonials(page: number = 1, perPage: number = 10): Promise<ApiResponse<any[]> & {
+    pagination?: {
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+      from: number;
+      to: number;
+      has_more_pages: boolean;
+      links: {
+        first: string | null;
+        last: string | null;
+        prev: string | null;
+        next: string | null;
+      };
+    };
+  }> {
+    const endpoint = `/testimonials/public?page=${page}&per_page=${perPage}`;
+
+    const defaultHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    const config: RequestInit = {
+      method: 'GET',
+      headers: defaultHeaders,
+    };
+
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, config);
+      const responseData = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        if (response.status === 422 || responseData.errors) {
+          return {
+            success: false,
+            message: responseData.message || 'Validation failed',
+            errors: responseData.errors || {}
+          };
+        }
+        throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return responseData;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getTestimonialTemplates(): Promise<ApiResponse<any[]>> {
     return this.get<any[]>('/testimonial-templates');
   }
@@ -530,6 +579,24 @@ class ApiService {
 
   async getForumCategories(): Promise<ApiResponse<any>> {
     return this.get('/forum/categories');
+  }
+
+  // Chart/Organization endpoints
+  async getUserChart(levels: number = 4): Promise<ApiResponse<any>> {
+    return this.get(`/user/chart?levels=${levels}`);
+  }
+
+  async findLastPersons(): Promise<ApiResponse<any>> {
+    return this.get('/user/find-last-persons');
+  }
+
+  async findAngelBuilders(): Promise<ApiResponse<any>> {
+    return this.get('/user/find-angel-builders');
+  }
+
+  // Dashboard Statistics endpoint
+  async getDashboardStats(): Promise<ApiResponse<any>> {
+    return this.get('/user/dashboard-stats');
   }
 }
 

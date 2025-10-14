@@ -27,27 +27,29 @@ interface DailyEntry extends TrackingEntry {
 
 interface Testimonial {
   id: string;
+  user_name?: string;
   template: {
     id: string;
     name: string;
-    slug: string;
+    slug?: string;
     category: string;
     category_label: string;
-    has_daily_tracking: boolean;
-    diary_days: number;
+    has_daily_tracking?: boolean;
+    diary_days?: number;
     initial_fields?: FormField[];
     daily_fields?: FormField[];
     initial_input_type?: string;
     daily_input_type?: string;
   };
-  status: string;
+  status?: string;
   is_public: boolean;
-  submitted_at: string;
-  approved_at: string | null;
+  submitted_at?: string;
+  approved_at?: string | null;
+  created_at?: string;
   form_data: Record<string, any>;
   photos: any[];
-  before_after_photos: any[];
-  tracking: {
+  before_after_photos?: any[];
+  tracking?: {
     completed_days: number;
     total_days: number;
     progress_percentage: number;
@@ -59,22 +61,47 @@ interface Testimonial {
 interface TestimonialCardProps {
   testimonial: Testimonial;
   onPress?: () => void;
+  isPublic?: boolean;
 }
 
-const TestimonialCard: React.FC<TestimonialCardProps> = ({ testimonial, onPress }) => {
+const TestimonialCard: React.FC<TestimonialCardProps> = ({ testimonial, onPress, isPublic = false }) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const dateToShow = isPublic
+    ? (testimonial.approved_at || testimonial.created_at || testimonial.submitted_at)
+    : testimonial.submitted_at;
+
+  const dateLabel = isPublic ? 'Shared on:' : 'Submitted on:';
+
   return (
-    <TouchableOpacity 
-      style={styles.card} 
+    <TouchableOpacity
+      style={styles.card}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>{testimonial.template.name}</Text>
-        <Text style={styles.status}>{testimonial.status}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>{testimonial.template.name}</Text>
+          {isPublic && testimonial.user_name && (
+            <Text style={styles.userName}>by {testimonial.user_name}</Text>
+          )}
+        </View>
+        {!isPublic && testimonial.status && (
+          <Text style={styles.status}>{testimonial.status}</Text>
+        )}
+        {isPublic && (
+          <View style={styles.publicBadge}>
+            <WebSafeIcon name="Globe" size={12} color={theme.colors.primary} />
+            <Text style={styles.publicText}>Public</Text>
+          </View>
+        )}
       </View>
       <View style={styles.body}>
-        <Text style={styles.date}>Submitted on: {new Date(testimonial.submitted_at).toLocaleDateString()}</Text>
-        {testimonial.template.has_daily_tracking && (
+        <Text style={styles.date}>{dateLabel} {formatDate(dateToShow)}</Text>
+        {!isPublic && testimonial.template.has_daily_tracking && testimonial.tracking && (
           <View style={styles.trackingContainer}>
             <WebSafeIcon name="TrendingUp" size={14} color={theme.colors.primary} />
             <Text style={styles.trackingText}>
@@ -103,13 +130,35 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: theme.spacing.xs,
+  },
+  titleContainer: {
+    flex: 1,
   },
   title: {
     fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
+  },
+  userName: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
+  },
+  publicBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primaryGhost,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+    gap: theme.spacing.xs,
+  },
+  publicText: {
+    fontSize: theme.typography.sizes.xs,
+    color: theme.colors.primary,
+    fontWeight: theme.typography.weights.medium,
   },
   status: {
     fontSize: theme.typography.sizes.sm,

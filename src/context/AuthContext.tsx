@@ -39,11 +39,15 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const response = await ApiService.getMe();
           if (response.success && response.data) {
-            setUser(response.data);
-            await AsyncStorage.setItem('userData', JSON.stringify(response.data));
+            // Handle nested user data structure from /auth/me endpoint
+            const userData = response.data.user || response.data;
+            console.log('AuthContext - Fetched user data:', JSON.stringify(userData, null, 2));
+            setUser(userData);
+            await AsyncStorage.setItem('userData', JSON.stringify(userData));
           }
         } catch (error) {
           // Token expired or invalid, clear auth state
+          console.error('AuthContext - Error verifying token:', error);
           await clearAuthState();
         }
       }
@@ -70,11 +74,19 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       const response: any = await ApiService.login(email, password);
 
-      // Handle both response formats: 
+      // Handle both response formats:
       // 1. Standard API format: { success: true, data: { user, token } }
       // 2. Direct format: { user, token }
-      const user = response.data?.user || response.user;
+      // 3. Nested format: { success: true, data: { user: { ...userWithGroups }, token } }
+      let user = response.data?.user || response.user;
       const token = response.data?.token || response.token;
+
+      // If user data is nested further, extract it
+      if (user && user.user && typeof user.user === 'object') {
+        user = user.user;
+      }
+
+      console.log('AuthContext - Login user data:', JSON.stringify(user, null, 2));
 
       if (user && token) {
         await AsyncStorage.setItem('userToken', token);
@@ -146,11 +158,19 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       const response: any = await ApiService.register(data);
 
-      // Handle both response formats: 
+      // Handle both response formats:
       // 1. Standard API format: { success: true, data: { user, token } }
       // 2. Direct format: { user, token }
-      const user = response.data?.user || response.user;
+      // 3. Nested format: { success: true, data: { user: { ...userWithGroups }, token } }
+      let user = response.data?.user || response.user;
       const token = response.data?.token || response.token;
+
+      // If user data is nested further, extract it
+      if (user && user.user && typeof user.user === 'object') {
+        user = user.user;
+      }
+
+      console.log('AuthContext - Register user data:', JSON.stringify(user, null, 2));
 
       if (user && token) {
         await AsyncStorage.setItem('userToken', token);

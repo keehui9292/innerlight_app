@@ -36,7 +36,16 @@ const emojiMap: Record<string, string> = {
   'FileText': '📝',
   'CreditCard': '💳',
   'XCircle': '❌',
-  'AlertCircle': '⚠️'
+  'AlertCircle': '⚠️',
+  'Users': '👥',
+  'UserPlus': '👤➕',
+  'TrendingUp': '📈',
+  'TrendingDown': '📉',
+  'Award': '🏆',
+  'BookOpen': '📖',
+  'Activity': '📊',
+  'GitBranch': '🌿',
+  'CheckCircle': '✅'
 };
 
 const WebSafeIcon: React.FC<WebSafeIconProps> = ({ name, size, color }) => {

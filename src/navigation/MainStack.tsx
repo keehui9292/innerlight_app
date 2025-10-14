@@ -8,6 +8,7 @@ import AppointmentDetailsScreen from '../screens/main/AppointmentDetailsScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import PaymentHistoryScreen from '../screens/main/PaymentHistoryScreen';
 import TestimonialScreen from '../screens/main/TestimonialScreen';
+import PublicTestimonialsScreen from '../screens/main/PublicTestimonialsScreen';
 import DetoxificationTestimonialScreen from '../screens/main/DetoxificationTestimonialScreen';
 import TestimonialDetailsScreen from '../screens/main/TestimonialDetailsScreen';
 import DailyQuestionsScreen from '../screens/main/DailyQuestionsScreen';
@@ -15,6 +16,7 @@ import WebViewScreen from '../screens/main/WebViewScreen';
 import ForumScreen from '../screens/main/ForumScreen';
 import TopicDetailsScreen from '../screens/main/TopicDetailsScreen';
 import CreateTopicScreen from '../screens/main/CreateTopicScreen';
+import DownlineChartScreen from '../screens/main/DownlineChartScreen';
 import { theme } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -84,9 +86,9 @@ const TabNavigator = () => {
           tabBarLabel: 'Forum',
         }}
       />
-      <Tab.Screen 
-        name="Testimonials" 
-        component={TestimonialScreen}
+      <Tab.Screen
+        name="Testimonials"
+        component={PublicTestimonialsScreen}
         options={{
           tabBarLabel: 'Testimonials',
         }}
@@ -121,6 +123,7 @@ const MainStack = () => {
       <Stack.Screen name="WebView" component={WebViewScreen} />
       <Stack.Screen name="TopicDetails" component={TopicDetailsScreen} />
       <Stack.Screen name="CreateTopic" component={CreateTopicScreen} />
+      <Stack.Screen name="DownlineChart" component={DownlineChartScreen} />
     </Stack.Navigator>
   );
 };

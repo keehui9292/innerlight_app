@@ -37,27 +37,29 @@ interface DailyEntry extends TrackingEntry {
 
 interface Testimonial {
   id: string;
+  user_name?: string;
   template: {
     id: string;
     name: string;
-    slug: string;
+    slug?: string;
     category: string;
     category_label: string;
-    has_daily_tracking: boolean;
-    diary_days: number;
+    has_daily_tracking?: boolean;
+    diary_days?: number;
     initial_fields?: FormField[];
     daily_fields?: FormField[];
     initial_input_type?: string;
     daily_input_type?: string;
   };
-  status: string;
+  status?: string;
   is_public: boolean;
   submitted_at: string;
-  approved_at: string | null;
+  approved_at?: string | null;
+  created_at?: string;
   form_data: Record<string, any>;
   photos: any[];
-  before_after_photos: any[];
-  tracking: {
+  before_after_photos?: any[];
+  tracking?: {
     completed_days: number;
     total_days: number;
     progress_percentage: number;
@@ -100,34 +102,37 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
   };
 
   const handleDayPress = (dayNumber: number) => {
+    // Only allow day navigation for personal testimonials with tracking
+    if (!testimonial.tracking) return;
+
     // Check if this day exists in daily_entries
     const dayEntry = testimonial.tracking.daily_entries[dayNumber.toString()];
-    
+
     // A day is truly completed only if it has actual tracking data (not empty array)
-    const hasActualData = dayEntry && !Array.isArray(dayEntry.tracking_data) && 
+    const hasActualData = dayEntry && !Array.isArray(dayEntry.tracking_data) &&
                          Object.keys(dayEntry.tracking_data).length > 0;
     const isCompleted = hasActualData;
-    
+
     // A day is available if it's the next day after completed days or if it exists but has no data
     const nextAvailableDay = testimonial.tracking.completed_days + 1;
     const isAvailable = dayNumber <= nextAvailableDay;
-    
+
     // Only allow access to completed days or available days
     if (!isCompleted && !isAvailable) {
       return; // Don't navigate if it's not completed or available
     }
-    
+
     // Prepare data for the day
     const dayData = dayEntry ? {
       day_number: dayNumber,
-      initial_data: dayNumber === 1 && testimonial.tracking.initial_entry 
-        ? (Array.isArray(testimonial.tracking.initial_entry.tracking_data) 
-           ? {} 
+      initial_data: dayNumber === 1 && testimonial.tracking.initial_entry
+        ? (Array.isArray(testimonial.tracking.initial_entry.tracking_data)
+           ? {}
            : testimonial.tracking.initial_entry.tracking_data)
         : undefined,
       daily_data: Array.isArray(dayEntry.tracking_data) ? {} : dayEntry.tracking_data,
     } : null;
-    
+
     console.log('TestimonialDetails navigating with data:', {
       testimonialId: testimonial.id,
       dayNumber,
@@ -135,7 +140,7 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
       dayData,
       dayEntry: dayEntry,
     });
-    
+
     navigation.navigate('DailyQuestions', {
       testimonialId: testimonial.id,
       dayNumber,
@@ -146,7 +151,7 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
   };
 
   const renderDayButtons = () => {
-    if (!testimonial.template.has_daily_tracking) return null;
+    if (!testimonial.template.has_daily_tracking || !testimonial.tracking) return null;
 
     const days = Array.from({ length: testimonial.template.diary_days }, (_, i) => i + 1);
 
@@ -155,9 +160,9 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
         <Text style={styles.sectionTitle}>Daily Tracking</Text>
         <View style={styles.daysContainer}>
           {days.map((dayNumber) => {
-            const dayEntry = testimonial.tracking.daily_entries[dayNumber.toString()];
+            const dayEntry = testimonial.tracking!.daily_entries[dayNumber.toString()];
             const isCompleted = !!dayEntry;
-            const nextAvailableDay = testimonial.tracking.completed_days + 1;
+            const nextAvailableDay = testimonial.tracking!.completed_days + 1;
             const isAccessible = isCompleted || dayNumber === nextAvailableDay;
             const isLocked = !isAccessible;
 
@@ -193,18 +198,18 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
                 )}
                 {isCompleted && (
                   <View style={styles.completedIcon}>
-                    <WebSafeIcon 
-                      name="CheckCircle" 
-                      size={12} 
+                    <WebSafeIcon
+                      name="CheckCircle"
+                      size={12}
                       color={theme.colors.success}
                     />
                   </View>
                 )}
                 {isLocked && (
                   <View style={styles.lockedIcon}>
-                    <WebSafeIcon 
-                      name="Lock" 
-                      size={12} 
+                    <WebSafeIcon
+                      name="Lock"
+                      size={12}
                       color={theme.colors.text.muted}
                     />
                   </View>
@@ -217,43 +222,55 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
     );
   };
 
-  const statusColors = getStatusColor(testimonial.status);
+  const statusColors = getStatusColor(testimonial.status || 'published');
+  const isPublicTestimonial = testimonial.is_public && !testimonial.tracking;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <Header title="Review Details" />
+      <Header title={isPublicTestimonial ? "Community Story" : "Review Details"} />
 
       <View style={styles.scrollContainer}>
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent} 
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {/* Testimonial Info Card */}
           <View style={styles.testimonialCard}>
-            {/* Status Badge - Top Right */}
-            <View style={styles.statusContainer}>
-              <View style={[
-                styles.statusBadge, 
-                { 
-                  backgroundColor: statusColors.bg,
-                  borderColor: statusColors.text + '20'
-                }
-              ]}>
-                <View style={[styles.statusDot, { backgroundColor: statusColors.dot }]} />
-                <Text style={[styles.statusText, { color: statusColors.text }]}>
-                  {testimonial.status}
-                </Text>
+            {/* Status Badge - Top Right for personal testimonials */}
+            {!isPublicTestimonial && testimonial.status && (
+              <View style={styles.statusContainer}>
+                <View style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: statusColors.bg,
+                    borderColor: statusColors.text + '20'
+                  }
+                ]}>
+                  <View style={[styles.statusDot, { backgroundColor: statusColors.dot }]} />
+                  <Text style={[styles.statusText, { color: statusColors.text }]}>
+                    {testimonial.status}
+                  </Text>
+                </View>
               </View>
-            </View>
-            
+            )}
+
             {/* Testimonial Info */}
             <View style={styles.testimonialInfo}>
               <Text style={styles.testimonialTitle}>
                 {testimonial.template.name}
               </Text>
+              {isPublicTestimonial && testimonial.user_name && (
+                <Text style={styles.userNameText}>
+                  by {testimonial.user_name}
+                </Text>
+              )}
               <Text style={styles.testimonialSubmittedDate}>
-                Submitted on {new Date(testimonial.submitted_at).toLocaleDateString('en-US', {
+                {isPublicTestimonial ? 'Shared' : 'Submitted'} on {new Date(
+                  isPublicTestimonial
+                    ? (testimonial.approved_at || testimonial.created_at || testimonial.submitted_at)
+                    : testimonial.submitted_at
+                ).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
@@ -261,8 +278,8 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
               </Text>
             </View>
 
-            {/* Progress Display */}
-            {testimonial.template.has_daily_tracking && (
+            {/* Progress Display - Only for personal testimonials */}
+            {testimonial.template.has_daily_tracking && testimonial.tracking && (
               <View style={styles.progressContainer}>
                 <Text style={styles.progressLabel}>Progress</Text>
                 <View style={styles.progressInfo}>
@@ -270,11 +287,11 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
                     {testimonial.tracking.completed_days} / {testimonial.tracking.total_days} days
                   </Text>
                   <View style={styles.progressBar}>
-                    <View 
+                    <View
                       style={[
-                        styles.progressFill, 
+                        styles.progressFill,
                         { width: `${testimonial.tracking.progress_percentage}%` }
-                      ]} 
+                      ]}
                     />
                   </View>
                   <Text style={styles.progressPercentage}>
@@ -285,10 +302,37 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
             )}
           </View>
 
-          {/* Daily Tracking Section */}
+          {/* Form Data Section - for public testimonials */}
+          {isPublicTestimonial && Object.keys(testimonial.form_data).length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Testimonial Details</Text>
+              <View style={styles.detailsContainer}>
+                {Object.entries(testimonial.form_data).map(([key, value]) => {
+                  if (key === 'agreed_to_terms' || !value) return null;
+
+                  const displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                  const displayValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
+
+                  return (
+                    <View key={key} style={styles.detailItem}>
+                      <View style={styles.detailIcon}>
+                        <WebSafeIcon name="Info" size={16} color={theme.colors.text.secondary} />
+                      </View>
+                      <View style={styles.detailContent}>
+                        <Text style={styles.detailLabel}>{displayKey}</Text>
+                        <Text style={styles.detailValue}>{displayValue}</Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
+          {/* Daily Tracking Section - Only for personal testimonials */}
           {renderDayButtons()}
 
-          {/* ID Section */}
+          {/* General Details Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Details</Text>
             <View style={styles.detailsContainer}>
@@ -304,15 +348,27 @@ const TestimonialDetailsScreen: React.FC<TestimonialDetailsScreenProps> = ({ nav
 
               <View style={styles.detailItem}>
                 <View style={styles.detailIcon}>
-                  <WebSafeIcon name="Calendar" size={16} color={theme.colors.text.secondary} />
+                  <WebSafeIcon name="Tag" size={16} color={theme.colors.text.secondary} />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Category</Text>
-                  <Text style={styles.detailValue}>
-                    {testimonial.template.has_daily_tracking ? 'Daily Tracking' : 'Initial Questions'}
-                  </Text>
+                  <Text style={styles.detailValue}>{testimonial.template.category_label}</Text>
                 </View>
               </View>
+
+              {!isPublicTestimonial && (
+                <View style={styles.detailItem}>
+                  <View style={styles.detailIcon}>
+                    <WebSafeIcon name="Calendar" size={16} color={theme.colors.text.secondary} />
+                  </View>
+                  <View style={styles.detailContent}>
+                    <Text style={styles.detailLabel}>Type</Text>
+                    <Text style={styles.detailValue}>
+                      {testimonial.template.has_daily_tracking ? 'Daily Tracking' : 'Initial Questions'}
+                    </Text>
+                  </View>
+                </View>
+              )}
             </View>
           </View>
 
@@ -379,6 +435,12 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
     lineHeight: 22,
     flexWrap: 'wrap',
+  },
+  userNameText: {
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weights.medium,
+    marginBottom: theme.spacing.xs,
   },
   testimonialSubmittedDate: {
     fontSize: theme.typography.sizes.sm,
