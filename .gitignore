@@ -40,3 +40,7 @@ yarn-error.*
 
 *.aab
 *.apk
+
+*.plist
+google-services.json
+firebase.ts
