@@ -30,11 +30,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
       const userData = await AsyncStorage.getItem('userData');
-      
+
       if (token && userData) {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
-        
+
         // Verify token is still valid
         try {
           const response = await ApiService.getMe();

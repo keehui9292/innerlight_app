@@ -610,6 +610,105 @@ class ApiService {
   async getDashboardStats(): Promise<ApiResponse<any>> {
     return this.get('/user/dashboard-stats');
   }
+
+  // Merits Leaderboard endpoint
+  async getMeritsLeaderboard(params?: {
+    month?: number;
+    year?: number;
+  }): Promise<ApiResponse<{
+    leaderboard: Array<{
+      rank: number;
+      user_id: string;
+      user_name: string;
+      user_email: string;
+      member_id: string;
+      total_points: number;
+    }>;
+    current_user: {
+      rank: number;
+      total_points: number;
+    };
+    filter: {
+      month?: number;
+      year?: number;
+    };
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.month) queryParams.append('month', params.month.toString());
+    if (params?.year) queryParams.append('year', params.year.toString());
+    const queryString = queryParams.toString();
+    return this.get(`/merits/leaderboard${queryString ? `?${queryString}` : ''}`);
+  }
+
+  // Chat endpoints
+  async createOneToOneChat(recipientId: string): Promise<ApiResponse<{
+    chat_id: string;
+    chat: any;
+  }>> {
+    return this.post('/chats', { recipient_id: recipientId });
+  }
+
+  async createGroupChat(data: {
+    group_name: string;
+    group_description?: string;
+    member_ids: string[];
+  }): Promise<ApiResponse<{
+    chat_id: string;
+    chat: any;
+  }>> {
+    return this.post('/chats/groups', data);
+  }
+
+  async getUserChats(): Promise<ApiResponse<any[]>> {
+    return this.get('/chats');
+  }
+
+  async getChatDetails(chatId: string): Promise<ApiResponse<any>> {
+    return this.get(`/chats/${chatId}`);
+  }
+
+  async sendMessage(chatId: string, data: {
+    message_text: string;
+    message_type?: string;
+  }): Promise<ApiResponse<{
+    message_id: string;
+    message: any;
+  }>> {
+    return this.post(`/chats/${chatId}/messages`, data);
+  }
+
+  async getMessages(chatId: string, params?: {
+    limit?: number;
+    last_message_id?: string;
+  }): Promise<ApiResponse<any[]>> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.last_message_id) queryParams.append('last_message_id', params.last_message_id);
+    const queryString = queryParams.toString();
+    return this.get(`/chats/${chatId}/messages${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async updateMessage(chatId: string, messageId: string, data: {
+    message_text: string;
+  }): Promise<ApiResponse<any>> {
+    return this.put(`/chats/${chatId}/messages/${messageId}`, data);
+  }
+
+  async deleteMessage(chatId: string, messageId: string): Promise<ApiResponse<any>> {
+    return this.delete(`/chats/${chatId}/messages/${messageId}`);
+  }
+
+  async addGroupMembers(chatId: string, userIds: string[]): Promise<ApiResponse<any>> {
+    return this.post(`/chats/${chatId}/members`, { user_ids: userIds });
+  }
+
+  async removeGroupMember(chatId: string, userId: string): Promise<ApiResponse<any>> {
+    return this.delete(`/chats/${chatId}/members/${userId}`);
+  }
+
+  async markMessagesAsRead(chatId: string, messageIds: string[]): Promise<ApiResponse<any>> {
+    return this.post(`/chats/${chatId}/read`, { message_ids: messageIds });
+  }
 }
 
 export default new ApiService();

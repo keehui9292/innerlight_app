@@ -44,3 +44,4 @@ yarn-error.*
 *.plist
 google-services.json
 firebase.ts
+*-firebase-*

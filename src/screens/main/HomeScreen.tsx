@@ -205,10 +205,10 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
       bgColor: '#f5f3f1'
     },
     {
-      title: 'View Schedule',
-      description: 'See your upcoming appointments',
-      icon: 'Clock',
-      onPress: () => navigation.navigate('Appointments'),
+      title: 'Leaderboard',
+      description: 'View merit rankings',
+      icon: 'Trophy',
+      onPress: () => navigation.navigate('Leaderboard'),
       color: theme.colors.primary,
       bgColor: '#f5f3f1'
     },
@@ -221,10 +221,10 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
       bgColor: '#f5f3f1'
     },
     {
-      title: 'Notifications',
-      description: 'View your notifications',
-      icon: 'Bell',
-      onPress: () => console.log('Notifications'),
+      title: 'View Schedule',
+      description: 'See your upcoming appointments',
+      icon: 'Clock',
+      onPress: () => navigation.navigate('Appointments'),
       color: theme.colors.primary,
       bgColor: '#f5f3f1'
     }

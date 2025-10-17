@@ -17,6 +17,10 @@ import ForumScreen from '../screens/main/ForumScreen';
 import TopicDetailsScreen from '../screens/main/TopicDetailsScreen';
 import CreateTopicScreen from '../screens/main/CreateTopicScreen';
 import DownlineChartScreen from '../screens/main/DownlineChartScreen';
+import LeaderboardScreen from '../screens/main/LeaderboardScreen';
+import ChatListScreen from '../screens/main/ChatListScreen';
+import ChatDetailScreen from '../screens/main/ChatDetailScreen';
+import NewChatScreen from '../screens/main/NewChatScreen';
 import { theme } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -50,6 +54,8 @@ const TabNavigator = () => {
             iconName = 'Home';
           } else if (route.name === 'Appointments') {
             iconName = 'Calendar';
+          } else if (route.name === 'Chats') {
+            iconName = 'MessageCircle';
           } else if (route.name === 'Forum') {
             iconName = 'MessageSquare';
           } else if (route.name === 'Testimonials') {
@@ -81,8 +87,16 @@ const TabNavigator = () => {
           title: 'Appointments | Innerlight'
         }}
       />
-      <Tab.Screen 
-        name="Forum" 
+      <Tab.Screen
+        name="Chats"
+        component={ChatListScreen}
+        options={{
+          tabBarLabel: 'Chats',
+          title: 'Chats | Innerlight'
+        }}
+      />
+      <Tab.Screen
+        name="Forum"
         component={ForumScreen}
         options={{
           tabBarLabel: 'Forum',
@@ -90,15 +104,7 @@ const TabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Testimonials"
-        component={PublicTestimonialsScreen}
-        options={{
-          tabBarLabel: 'Testimonials',
-          title: 'Testimonials | Innerlight'
-        }}
-      />
-      <Tab.Screen 
-        name="Profile" 
+        name="Profile"
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
@@ -129,6 +135,9 @@ const MainStack = () => {
       <Stack.Screen name="TopicDetails" component={TopicDetailsScreen} options={{ title: 'Topic Details | Innerlight' }}/>
       <Stack.Screen name="CreateTopic" component={CreateTopicScreen} options={{ title: 'Create Topic | Innerlight' }}/>
       <Stack.Screen name="DownlineChart" component={DownlineChartScreen} options={{ title: 'Downline Chart | Innerlight' }}/>
+      <Stack.Screen name="Leaderboard" component={LeaderboardScreen} options={{ title: 'Leaderboard | Innerlight' }}/>
+      <Stack.Screen name="NewChat" component={NewChatScreen} options={{ title: 'New Chat | Innerlight' }}/>
+      <Stack.Screen name="ChatDetail" component={ChatDetailScreen} options={{ title: 'Chat | Innerlight' }}/>
     </Stack.Navigator>
   );
 };
