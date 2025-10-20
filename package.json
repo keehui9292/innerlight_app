@@ -30,6 +30,7 @@
     "expo": "53.0.22",
     "expo-calendar": "~14.1.4",
     "expo-clipboard": "~7.1.5",
+    "expo-notifications": "~0.31.4",
     "expo-secure-store": "~14.2.4",
     "expo-status-bar": "~2.2.3",
     "firebase": "^12.4.0",

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { useAuth } from '../../context/AuthContext';
 import { TabScreenProps } from '../../types';
 import { theme } from '../../constants/theme';
 import ApiService from '../../services/apiService';
+import notificationService from '../../services/notificationService';
 
 interface Chat {
   id: string;
@@ -27,24 +28,51 @@ interface Chat {
 const ChatListScreen: React.FC<TabScreenProps<'Chats'>> = ({ navigation }) => {
   const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   useEffect(() => {
     fetchChats();
+
+    // Poll for chat updates every 5 seconds
+    const interval = setInterval(() => {
+      fetchChats();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [user?.id]);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    const setupNotifications = async () => {
+      const hasPermission = await notificationService.areNotificationsEnabled();
+      if (!hasPermission) {
+        await notificationService.requestPermission();
+      }
+
+      // Listen for new messages
+      const unsubscribe = notificationService.listenForMessages((payload) => {
+        // Refresh chat list when new message arrives
+        fetchChats();
+      });
+
+      return () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
+    };
+
+    setupNotifications();
+  }, []);
 
   const fetchChats = async () => {
     try {
-      setLoading(true);
       const response = await ApiService.getUserChats();
       if (response.success && response.data) {
         setChats(response.data);
       }
     } catch (error) {
       console.error('Error fetching chats:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -105,32 +133,38 @@ const ChatListScreen: React.FC<TabScreenProps<'Chats'>> = ({ navigation }) => {
     const avatar = getChatAvatar(chat);
     const lastMessageText = chat.last_message?.text || 'No messages yet';
     const timestamp = formatTimestamp(chat.last_message?.timestamp || chat.updated_at);
+    const hasUnread = (chat.unread_count || 0) > 0;
 
     return (
       <TouchableOpacity
         key={chat.id}
-        style={styles.chatItem}
+        style={[styles.chatItem, hasUnread && styles.chatItemUnread]}
         onPress={() => navigation.navigate('ChatDetail', { chatId: chat.id, chatTitle: title })}
         activeOpacity={0.7}
       >
-        <View style={[styles.avatar, chat.type === 'group' && styles.avatarGroup]}>
-          <Text style={styles.avatarText}>{avatar}</Text>
+        <View style={styles.avatarContainer}>
+          <View style={[styles.avatar, chat.type === 'group' && styles.avatarGroup]}>
+            <Text style={styles.avatarText}>{avatar}</Text>
+          </View>
+          {hasUnread && <View style={styles.unreadDot} />}
         </View>
 
         <View style={styles.chatContent}>
           <View style={styles.chatHeader}>
-            <Text style={styles.chatTitle} numberOfLines={1}>{title}</Text>
+            <Text style={[styles.chatTitle, hasUnread && styles.chatTitleUnread]} numberOfLines={1}>
+              {title}
+            </Text>
             <Text style={styles.chatTime}>{timestamp}</Text>
           </View>
 
           <View style={styles.chatFooter}>
-            <Text style={styles.lastMessage} numberOfLines={1}>
+            <Text style={[styles.lastMessage, hasUnread && styles.lastMessageUnread]} numberOfLines={1}>
               {lastMessageText}
             </Text>
-            {chat.unread_count && chat.unread_count > 0 && (
+            {hasUnread && (
               <View style={styles.unreadBadge}>
                 <Text style={styles.unreadText}>
-                  {chat.unread_count > 99 ? '99+' : chat.unread_count}
+                  {chat.unread_count! > 99 ? '99+' : chat.unread_count}
                 </Text>
               </View>
             )}
@@ -139,20 +173,6 @@ const ChatListScreen: React.FC<TabScreenProps<'Chats'>> = ({ navigation }) => {
       </TouchableOpacity>
     );
   };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Messages</Text>
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Loading chats...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -222,16 +242,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text.secondary,
-  },
   chatsList: {
     paddingVertical: theme.spacing.xs,
   },
@@ -244,6 +254,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.subtle,
   },
+  chatItemUnread: {
+    backgroundColor: '#fef9f8',
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: theme.spacing.sm,
+  },
   avatar: {
     width: 50,
     height: 50,
@@ -251,7 +268,17 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: theme.spacing.sm,
+  },
+  unreadDot: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#EF4444',
+    borderWidth: 2,
+    borderColor: theme.colors.white,
   },
   avatarGroup: {
     backgroundColor: theme.colors.primaryDark,
@@ -276,6 +303,10 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     flex: 1,
   },
+  chatTitleUnread: {
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+  },
   chatTime: {
     fontSize: theme.typography.sizes.xs,
     color: theme.colors.text.tertiary,
@@ -291,11 +322,15 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     flex: 1,
   },
+  lastMessageUnread: {
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+  },
   unreadBadge: {
     minWidth: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: '#EF4444',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.xs,

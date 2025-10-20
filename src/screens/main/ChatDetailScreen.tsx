@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, TextInput, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { useAuth } from '../../context/AuthContext';
 import { theme } from '../../constants/theme';
 import ApiService from '../../services/apiService';
+import notificationService from '../../services/notificationService';
 
 interface Message {
   id: string;
@@ -32,10 +33,15 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
   const { chatId, chatTitle } = route.params;
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [inputText, setInputText] = useState<string>('');
   const [sending, setSending] = useState<boolean>(false);
-  const flatListRef = useRef<FlatList>(null);
+  const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const previousMessageCountRef = useRef<number>(0);
+  const isInitialLoadRef = useRef<boolean>(true);
+  const isAtBottomRef = useRef<boolean>(true);
+  const contentHeightRef = useRef<number>(0);
+  const scrollViewHeightRef = useRef<number>(0);
 
   useEffect(() => {
     navigation.setOptions({
@@ -50,18 +56,55 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
     return () => clearInterval(interval);
   }, [chatId]);
 
+  // Listen for notification responses (when user taps notification)
+  useEffect(() => {
+    const unsubscribe = notificationService.listenForNotificationResponse((response) => {
+      const chatIdFromNotification = response?.notification?.request?.content?.data?.chatId;
+      if (chatIdFromNotification && chatIdFromNotification !== chatId) {
+        // Navigate to the correct chat if tapped notification is for different chat
+        navigation.navigate('ChatDetail', {
+          chatId: chatIdFromNotification,
+          chatTitle: response?.notification?.request?.content?.data?.chatTitle || 'Chat'
+        });
+      }
+    });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [chatId]);
+
   const fetchMessages = async () => {
     if (!chatId) return;
 
     try {
-      if (messages.length === 0) {
-        setLoading(true);
-      }
-
       const response = await ApiService.getMessages(chatId, { limit: 50 });
       if (response.success && response.data) {
         const messagesList = response.data.filter((msg: Message) => !msg.deleted);
-        setMessages(messagesList.reverse()); // Reverse for descending order
+
+        // Check for new messages and show notification
+        if (previousMessageCountRef.current > 0 && messagesList.length > previousMessageCountRef.current) {
+          const newMessages = messagesList.slice(previousMessageCountRef.current);
+          const latestMessage = newMessages[newMessages.length - 1];
+
+          // Only show notification if the message is from someone else
+          if (latestMessage && latestMessage.sender_id !== user?.id) {
+            notificationService.showNotification(
+              latestMessage.sender_name || chatTitle,
+              latestMessage.message_text,
+              { chatId, chatTitle }
+            );
+          }
+        }
+
+        // Update message count reference
+        previousMessageCountRef.current = messagesList.length;
+
+        // Don't reverse - keep chronological order (oldest first)
+        // FlatList will show them oldest at top, newest at bottom
+        setMessages(messagesList);
 
         // Mark messages as read
         const unreadMessageIds = messagesList
@@ -76,8 +119,6 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -95,6 +136,8 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
       });
       // Refresh messages after sending
       await fetchMessages();
+      // Scroll to bottom after sending message
+      setTimeout(() => scrollToBottom(true), 200);
     } catch (error) {
       console.error('Error sending message:', error);
       setInputText(messageText); // Restore text on error
@@ -110,12 +153,49 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   };
 
-  const renderMessage = ({ item }: { item: Message }) => {
+  const scrollToBottom = (animated: boolean = true) => {
+    if (messages.length > 0 && contentHeightRef.current > scrollViewHeightRef.current) {
+      scrollViewRef.current?.scrollToEnd({ animated });
+      setShowScrollButton(false);
+      isAtBottomRef.current = true;
+    }
+  };
+
+  const handleScroll = (event: any) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    contentHeightRef.current = contentSize.height;
+    scrollViewHeightRef.current = layoutMeasurement.height;
+
+    const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+
+    // Show button if user scrolled up more than 100px from bottom
+    const isNearBottom = distanceFromBottom < 100;
+    isAtBottomRef.current = isNearBottom;
+    setShowScrollButton(!isNearBottom && contentSize.height > layoutMeasurement.height);
+  };
+
+  const handleContentSizeChange = (_width: number, height: number) => {
+    contentHeightRef.current = height;
+
+    // Auto-scroll to bottom on initial load or when user is already at bottom
+    if (isInitialLoadRef.current) {
+      // Initial load: scroll without animation for instant display
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+        isInitialLoadRef.current = false;
+      }, 100);
+    } else if (isAtBottomRef.current && messages.length > 0) {
+      // User is at bottom: auto-scroll to show new messages
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }
+  };
+
+  const renderMessage = (item: Message) => {
     const isOwnMessage = item.sender_id === user?.id;
     const showSenderName = !isOwnMessage;
 
     return (
-      <View style={[styles.messageContainer, isOwnMessage && styles.messageContainerOwn]}>
+      <View key={item.id} style={[styles.messageContainer, isOwnMessage && styles.messageContainerOwn]}>
         {showSenderName && (
           <Text style={styles.senderName}>{item.sender_name}</Text>
         )}
@@ -128,7 +208,9 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
               {formatTimestamp(item.timestamp)}
             </Text>
             {isOwnMessage && item.read_by && item.read_by.length > 1 && (
-              <WebSafeIcon name="CheckCheck" size={14} color={theme.colors.primary} style={styles.readIcon} />
+              <View style={styles.readIcon}>
+                <WebSafeIcon name="CheckCheck" size={14} color={theme.colors.primary} />
+              </View>
             )}
           </View>
         </View>
@@ -136,26 +218,8 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
     );
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <WebSafeIcon name="ArrowLeft" size={24} color={theme.colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{chatTitle}</Text>
-          <View style={styles.backButton} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Loading messages...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <WebSafeIcon name="ArrowLeft" size={24} color={theme.colors.text.primary} />
@@ -166,61 +230,78 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          inverted
-          style={styles.messagesList}
-          contentContainerStyle={styles.messagesContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <WebSafeIcon name="MessageCircle" size={48} color={theme.colors.text.light} />
-              <Text style={styles.emptyText}>No messages yet</Text>
-              <Text style={styles.emptySubtext}>Start the conversation</Text>
-            </View>
-          }
-        />
+      <View style={styles.contentWrapper}>
+        <View style={styles.messagesContainer}>
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.messagesList}
+            contentContainerStyle={styles.messagesContent}
+            showsVerticalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            onContentSizeChange={handleContentSizeChange}
+          >
+            {messages.length === 0 ? (
+              <View style={styles.emptyState}>
+                <WebSafeIcon name="MessageCircle" size={48} color={theme.colors.text.light} />
+                <Text style={styles.emptyText}>No messages yet</Text>
+                <Text style={styles.emptySubtext}>Start the conversation</Text>
+              </View>
+            ) : (
+              messages.map(renderMessage)
+            )}
+          </ScrollView>
 
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Type a message..."
-              placeholderTextColor={theme.colors.text.light}
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={1000}
-            />
+          {showScrollButton && (
             <TouchableOpacity
-              style={[styles.sendButton, (!inputText.trim() || sending) && styles.sendButtonDisabled]}
-              onPress={handleSendMessage}
-              disabled={!inputText.trim() || sending}
+              style={styles.scrollToBottomButton}
+              onPress={() => scrollToBottom(true)}
+              activeOpacity={0.8}
             >
-              {sending ? (
-                <ActivityIndicator size="small" color={theme.colors.white} />
-              ) : (
-                <WebSafeIcon name="Send" size={20} color={theme.colors.white} />
-              )}
+              <WebSafeIcon name="ArrowDown" size={20} color={theme.colors.white} />
             </TouchableOpacity>
-          </View>
+          )}
         </View>
-      </KeyboardAvoidingView>
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                placeholder="Type a message..."
+                placeholderTextColor={theme.colors.text.light}
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={1000}
+              />
+              <TouchableOpacity
+                style={[styles.sendButton, (!inputText.trim() || sending) && styles.sendButtonDisabled]}
+                onPress={handleSendMessage}
+                disabled={!inputText.trim() || sending}
+              >
+                {sending ? (
+                  <ActivityIndicator size="small" color={theme.colors.white} />
+                ) : (
+                  <WebSafeIcon name="Send" size={20} color={theme.colors.white} />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
     backgroundColor: theme.colors.background,
   },
   header: {
@@ -240,28 +321,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
     fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
     textAlign: 'center',
     marginHorizontal: theme.spacing.sm,
   },
-  keyboardView: {
-    flex: 1,
+  contentWrapper: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text.secondary,
+  messagesContainer: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
   },
   messagesList: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
   },
   messagesContent: {
     paddingHorizontal: theme.spacing.md,
@@ -331,7 +413,9 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   input: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
     backgroundColor: theme.colors.background,
     borderRadius: theme.borderRadius.lg,
     paddingHorizontal: theme.spacing.md,
@@ -358,7 +442,6 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingVertical: theme.spacing.xl * 2,
-    transform: [{ scaleY: -1 }], // Flip back since list is inverted
   },
   emptyText: {
     fontSize: theme.typography.sizes.lg,
@@ -370,6 +453,19 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text.light,
+  },
+  scrollToBottomButton: {
+    position: 'absolute',
+    bottom: theme.spacing.md,
+    right: theme.spacing.md,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.medium,
+    elevation: 5,
   },
 });
 
