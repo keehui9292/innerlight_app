@@ -111,7 +111,7 @@ const ChatListScreen: React.FC<TabScreenProps<'Chats'>> = ({ navigation }) => {
   const formatTimestamp = (timestamp: any) => {
     if (!timestamp) return '';
 
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp * 1000);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));

@@ -205,6 +205,14 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
       bgColor: '#f5f3f1'
     },
     {
+      title: 'Questionnaires',
+      description: 'Track body, mind & spirit',
+      icon: 'FileText',
+      onPress: () => navigation.navigate('QuestionnaireList'),
+      color: theme.colors.primary,
+      bgColor: '#f5f3f1'
+    },
+    {
       title: 'Leaderboard',
       description: 'View merit rankings',
       icon: 'Trophy',
@@ -217,14 +225,6 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
       description: 'Manage your account',
       icon: 'User',
       onPress: () => navigation.navigate('Profile'),
-      color: theme.colors.primary,
-      bgColor: '#f5f3f1'
-    },
-    {
-      title: 'View Schedule',
-      description: 'See your upcoming appointments',
-      icon: 'Clock',
-      onPress: () => navigation.navigate('Appointments'),
       color: theme.colors.primary,
       bgColor: '#f5f3f1'
     }

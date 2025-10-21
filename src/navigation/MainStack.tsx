@@ -21,12 +21,19 @@ import LeaderboardScreen from '../screens/main/LeaderboardScreen';
 import ChatListScreen from '../screens/main/ChatListScreen';
 import ChatDetailScreen from '../screens/main/ChatDetailScreen';
 import NewChatScreen from '../screens/main/NewChatScreen';
+import QuestionnaireListScreen from '../screens/main/QuestionnaireListScreen';
+import QuestionnaireDetailScreen from '../screens/main/QuestionnaireDetailScreen';
+import QuestionnaireResultScreen from '../screens/main/QuestionnaireResultScreen';
+import QuestionnaireHistoryScreen from '../screens/main/QuestionnaireHistoryScreen';
 import { theme } from '../constants/theme';
+import { useUnreadCount } from '../hooks/useUnreadCount';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const TabNavigator = () => {
+  const { unreadCount } = useUnreadCount();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -92,7 +99,17 @@ const TabNavigator = () => {
         component={ChatListScreen}
         options={{
           tabBarLabel: 'Chats',
-          title: 'Chats | Innerlight'
+          title: 'Chats | Innerlight',
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: '#EF4444',
+            color: '#FFFFFF',
+            fontSize: 10,
+            minWidth: 18,
+            height: 18,
+            borderRadius: 9,
+            lineHeight: 18,
+          }
         }}
       />
       <Tab.Screen
@@ -138,6 +155,10 @@ const MainStack = () => {
       <Stack.Screen name="Leaderboard" component={LeaderboardScreen} options={{ title: 'Leaderboard | Innerlight' }}/>
       <Stack.Screen name="NewChat" component={NewChatScreen} options={{ title: 'New Chat | Innerlight' }}/>
       <Stack.Screen name="ChatDetail" component={ChatDetailScreen} options={{ title: 'Chat | Innerlight' }}/>
+      <Stack.Screen name="QuestionnaireList" component={QuestionnaireListScreen} options={{ title: 'Questionnaires | Innerlight' }}/>
+      <Stack.Screen name="QuestionnaireDetail" component={QuestionnaireDetailScreen} options={{ title: 'Questionnaire | Innerlight' }}/>
+      <Stack.Screen name="QuestionnaireResult" component={QuestionnaireResultScreen} options={{ title: 'Results | Innerlight' }}/>
+      <Stack.Screen name="QuestionnaireHistory" component={QuestionnaireHistoryScreen} options={{ title: 'History | Innerlight' }}/>
     </Stack.Navigator>
   );
 };

@@ -709,6 +709,42 @@ class ApiService {
   async markMessagesAsRead(chatId: string, messageIds: string[]): Promise<ApiResponse<any>> {
     return this.post(`/chats/${chatId}/read`, { message_ids: messageIds });
   }
+
+  async getTotalUnreadCount(): Promise<ApiResponse<{ total_unread_count: number }>> {
+    return this.get('/chats/unread/count');
+  }
+
+  // Questionnaire endpoints
+  async getQuestionnaires(): Promise<ApiResponse<any[]>> {
+    return this.get('/questionnaires');
+  }
+
+  async getQuestionnaireDetails(questionnaireId: string): Promise<ApiResponse<any>> {
+    return this.get(`/questionnaires/${questionnaireId}`);
+  }
+
+  async submitQuestionnaire(questionnaireId: string, data: {
+    period_year: number;
+    period_month?: number | null;
+    responses: Record<string, string[]>;
+  }): Promise<ApiResponse<any>> {
+    return this.post(`/questionnaires/${questionnaireId}/submit`, data);
+  }
+
+  async getMyQuestionnaireResponses(params?: {
+    questionnaire_id?: string;
+    page?: number;
+  }): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (params?.questionnaire_id) queryParams.append('questionnaire_id', params.questionnaire_id);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    const queryString = queryParams.toString();
+    return this.get(`/my-questionnaire-responses${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async getQuestionnaireResponse(responseId: string): Promise<ApiResponse<any>> {
+    return this.get(`/questionnaires/responses/${responseId}`);
+  }
 }
 
 export default new ApiService();
