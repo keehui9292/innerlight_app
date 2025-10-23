@@ -159,6 +159,7 @@ const MainStack = () => {
       <Stack.Screen name="QuestionnaireDetail" component={QuestionnaireDetailScreen} options={{ title: 'Questionnaire | Innerlight' }}/>
       <Stack.Screen name="QuestionnaireResult" component={QuestionnaireResultScreen} options={{ title: 'Results | Innerlight' }}/>
       <Stack.Screen name="QuestionnaireHistory" component={QuestionnaireHistoryScreen} options={{ title: 'History | Innerlight' }}/>
+      <Stack.Screen name="PublicTestimonials" component={PublicTestimonialsScreen} options={{ title: 'Share Your Story | Innerlight' }}/>
     </Stack.Navigator>
   );
 };

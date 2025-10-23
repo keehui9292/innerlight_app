@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import Header from '../../components/common/Header';
 import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { useAuth } from '../../context/AuthContext';
 import { TabScreenProps } from '../../types';
@@ -29,17 +31,111 @@ const ChatListScreen: React.FC<TabScreenProps<'Chats'>> = ({ navigation }) => {
   const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [lastUpdateTimestamp, setLastUpdateTimestamp] = useState<number>(0);
+  const [useOptimizedPolling, setUseOptimizedPolling] = useState<boolean>(true);
+  const failedChecksRef = React.useRef<number>(0);
+  const isFetchingRef = React.useRef<boolean>(false);
+  const lastFetchTimeRef = React.useRef<number>(0);
 
-  useEffect(() => {
-    fetchChats();
+  const fetchChats = async () => {
+    // Prevent concurrent fetches
+    if (isFetchingRef.current) {
+      console.log('Already fetching chats, skipping...');
+      return;
+    }
 
-    // Poll for chat updates every 5 seconds
-    const interval = setInterval(() => {
+    // Prevent fetching more than once per 3 seconds
+    const now = Date.now();
+    if (now - lastFetchTimeRef.current < 3000) {
+      console.log('Fetched recently, skipping...');
+      return;
+    }
+
+    isFetchingRef.current = true;
+    lastFetchTimeRef.current = now;
+
+    try {
+      const response = await ApiService.getUserChats();
+      if (response.success && response.data) {
+        setChats(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+    } finally {
+      isFetchingRef.current = false;
+    }
+  };
+
+  const checkForUpdates = async () => {
+    if (!useOptimizedPolling) {
+      // Fallback to old polling if optimized endpoint not available
+      // But only fetch once every 10 seconds to reduce load
+      const now = Date.now();
+      if (now - lastFetchTimeRef.current >= 10000) {
+        await fetchChats();
+      }
+      return;
+    }
+
+    try {
+      const response = await ApiService.checkChatUpdates();
+
+      if (response.success && response.data) {
+        // Reset failed checks counter on success
+        failedChecksRef.current = 0;
+
+        // Only fetch if:
+        // 1. has_updates is true
+        // 2. timestamp is newer than last update
+        // 3. Not currently fetching
+        if (response.data.has_updates &&
+            response.data.timestamp > lastUpdateTimestamp &&
+            !isFetchingRef.current) {
+          console.log('Updates detected, fetching chats...');
+          await fetchChats();
+          setLastUpdateTimestamp(response.data.timestamp);
+        } else if (response.data.has_updates) {
+          console.log('Updates reported but timestamp unchanged, skipping fetch');
+        }
+      } else {
+        // Endpoint exists but returned error
+        failedChecksRef.current++;
+        if (failedChecksRef.current >= 3) {
+          console.warn('check-updates endpoint failing, switching to direct polling');
+          setUseOptimizedPolling(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking for chat updates:', error);
+      failedChecksRef.current++;
+
+      // If endpoint fails 3 times in a row, assume it doesn't exist
+      // and fall back to direct polling
+      if (failedChecksRef.current >= 3) {
+        console.warn('check-updates endpoint not available, switching to direct polling');
+        setUseOptimizedPolling(false);
+      }
+    }
+  };
+
+  // Only poll when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Initial fetch when screen comes into focus
       fetchChats();
-    }, 5000);
 
-    return () => clearInterval(interval);
-  }, [user?.id]);
+      // Optimized polling: check for updates first, then fetch only if needed
+      const interval = setInterval(async () => {
+        await checkForUpdates();
+      }, 5000); // Check every 5 seconds (lightweight, cached)
+
+      // Cleanup: stop polling when screen loses focus
+      return () => {
+        clearInterval(interval);
+        console.log('ChatListScreen: Stopped polling (screen unfocused)');
+      };
+    }, [])
+  );
 
   // Request notification permission on mount
   useEffect(() => {
@@ -51,8 +147,8 @@ const ChatListScreen: React.FC<TabScreenProps<'Chats'>> = ({ navigation }) => {
 
       // Listen for new messages
       const unsubscribe = notificationService.listenForMessages((payload) => {
-        // Refresh chat list when new message arrives
-        fetchChats();
+        // Trigger update check when notification arrives (instead of fetching directly)
+        checkForUpdates();
       });
 
       return () => {
@@ -64,17 +160,6 @@ const ChatListScreen: React.FC<TabScreenProps<'Chats'>> = ({ navigation }) => {
 
     setupNotifications();
   }, []);
-
-  const fetchChats = async () => {
-    try {
-      const response = await ApiService.getUserChats();
-      if (response.success && response.data) {
-        setChats(response.data);
-      }
-    } catch (error) {
-      console.error('Error fetching chats:', error);
-    }
-  };
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -176,15 +261,7 @@ const ChatListScreen: React.FC<TabScreenProps<'Chats'>> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
-        <TouchableOpacity
-          style={styles.newChatButton}
-          onPress={() => navigation.navigate('NewChat')}
-        >
-          <WebSafeIcon name="Edit" size={20} color={theme.colors.primary} />
-        </TouchableOpacity>
-      </View>
+      <Header title="Messages" />
 
       <ScrollView
         style={styles.scrollView}
@@ -215,29 +292,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    backgroundColor: theme.colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-  },
-  headerTitle: {
-    fontSize: theme.typography.sizes.xl,
-    fontWeight: theme.typography.weights.medium,
-    color: theme.colors.text.primary,
-  },
-  newChatButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.primaryGhost,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   scrollView: {
     flex: 1,

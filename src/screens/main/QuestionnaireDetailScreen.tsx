@@ -106,6 +106,21 @@ const QuestionnaireDetailScreen: React.FC<QuestionnaireDetailScreenProps> = ({ n
     return true;
   };
 
+  const isCurrentStepValid = (): boolean => {
+    const stepQuestions = questionnaire?.questions_by_step[currentStep.toString()] || [];
+
+    for (const question of stepQuestions) {
+      if (question.is_required) {
+        const hasAnswer = responses[question.id] && responses[question.id].length > 0;
+        if (!hasAnswer) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
   const handleNext = () => {
     if (validateStep(currentStep)) {
       if (currentStep < questionnaire.total_steps) {
@@ -241,6 +256,7 @@ const QuestionnaireDetailScreen: React.FC<QuestionnaireDetailScreenProps> = ({ n
 
   const currentStepQuestions = questionnaire?.questions_by_step[currentStep.toString()] || [];
   const isLastStep = currentStep === questionnaire?.total_steps;
+  const isStepValid = isCurrentStepValid();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -307,10 +323,10 @@ const QuestionnaireDetailScreen: React.FC<QuestionnaireDetailScreenProps> = ({ n
             style={[
               styles.footerButton,
               styles.submitButton,
-              submitting && styles.footerButtonDisabled
+              (!isStepValid || submitting) && styles.submitButtonDisabled
             ]}
             onPress={handleSubmit}
-            disabled={submitting}
+            disabled={!isStepValid || submitting}
             activeOpacity={0.7}
           >
             {submitting ? (
@@ -324,8 +340,13 @@ const QuestionnaireDetailScreen: React.FC<QuestionnaireDetailScreenProps> = ({ n
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[styles.footerButton, styles.nextButton]}
+            style={[
+              styles.footerButton,
+              styles.nextButton,
+              !isStepValid && styles.nextButtonDisabled
+            ]}
             onPress={handleNext}
+            disabled={!isStepValid}
             activeOpacity={0.7}
           >
             <Text style={styles.nextButtonText}>Next</Text>
@@ -499,7 +520,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     borderRadius: theme.borderRadius.md,
     borderWidth: 1,
     borderColor: theme.colors.border.default,
@@ -510,7 +531,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   footerButtonText: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.text.primary,
   },
@@ -522,18 +543,28 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   nextButtonText: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.white,
+  },
+  nextButtonDisabled: {
+    backgroundColor: theme.colors.text.light,
+    borderColor: theme.colors.text.light,
+    opacity: 0.5,
   },
   submitButton: {
     backgroundColor: theme.colors.success,
     borderColor: theme.colors.success,
   },
   submitButtonText: {
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.white,
+  },
+  submitButtonDisabled: {
+    backgroundColor: theme.colors.text.light,
+    borderColor: theme.colors.text.light,
+    opacity: 0.5,
   },
 });
 

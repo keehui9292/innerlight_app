@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { useAuth } from '../../context/AuthContext';
 import { theme } from '../../constants/theme';
@@ -42,6 +43,7 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
   const isAtBottomRef = useRef<boolean>(true);
   const contentHeightRef = useRef<number>(0);
   const scrollViewHeightRef = useRef<number>(0);
+  const lastMessageIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     navigation.setOptions({
@@ -49,12 +51,43 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
     });
   }, [chatTitle]);
 
-  useEffect(() => {
-    fetchMessages();
-    // Poll for new messages every 5 seconds
-    const interval = setInterval(fetchMessages, 5000);
-    return () => clearInterval(interval);
-  }, [chatId]);
+  // Only poll when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Initial fetch when screen comes into focus
+      fetchMessages();
+
+      // Optimized polling: check for new messages first, then fetch only if needed
+      const interval = setInterval(async () => {
+        await checkForNewMessages();
+      }, 3000); // Check every 3 seconds (lightweight, cached)
+
+      // Cleanup: stop polling when screen loses focus
+      return () => {
+        clearInterval(interval);
+        console.log('ChatDetailScreen: Stopped polling (screen unfocused)');
+      };
+    }, [chatId])
+  );
+
+  const checkForNewMessages = async () => {
+    try {
+      const response = await ApiService.checkNewMessages(chatId);
+
+      if (response.success && response.data) {
+        // Only fetch full messages if there are new messages
+        if (response.data.has_new_messages &&
+            response.data.last_message_id !== lastMessageIdRef.current) {
+          await fetchMessages();
+          lastMessageIdRef.current = response.data.last_message_id;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking for new messages:', error);
+      // Fallback to fetching messages if check fails
+      await fetchMessages();
+    }
+  };
 
   // Listen for notification responses (when user taps notification)
   useEffect(() => {
@@ -101,6 +134,11 @@ const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ navigation, route }
 
         // Update message count reference
         previousMessageCountRef.current = messagesList.length;
+
+        // Track the last message ID for optimized polling
+        if (messagesList.length > 0) {
+          lastMessageIdRef.current = messagesList[messagesList.length - 1].id;
+        }
 
         // Don't reverse - keep chronological order (oldest first)
         // FlatList will show them oldest at top, newest at bottom

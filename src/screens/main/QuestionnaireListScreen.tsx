@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import WebSafeIcon from '../../components/common/WebSafeIcon';
 import { theme } from '../../constants/theme';
@@ -148,7 +148,7 @@ const QuestionnaireListScreen: React.FC<QuestionnaireListScreenProps> = ({ navig
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <WebSafeIcon name="ArrowLeft" size={24} color={theme.colors.text.primary} />
@@ -164,7 +164,7 @@ const QuestionnaireListScreen: React.FC<QuestionnaireListScreenProps> = ({ navig
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <WebSafeIcon name="ArrowLeft" size={24} color={theme.colors.text.primary} />
@@ -173,27 +173,29 @@ const QuestionnaireListScreen: React.FC<QuestionnaireListScreenProps> = ({ navig
         <View style={styles.backButton} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {questionnaires.length === 0 ? (
-          <View style={styles.emptyState}>
-            <WebSafeIcon name="FileText" size={48} color={theme.colors.text.light} />
-            <Text style={styles.emptyTitle}>No questionnaires available</Text>
-            <Text style={styles.emptySubtitle}>
-              Check back later for available questionnaires
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.questionnairesList}>
-            {questionnaires.map(renderQuestionnaireCard)}
-          </View>
-        )}
-      </ScrollView>
+      <View style={styles.scrollContainer}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {questionnaires.length === 0 ? (
+            <View style={styles.emptyState}>
+              <WebSafeIcon name="FileText" size={48} color={theme.colors.text.light} />
+              <Text style={styles.emptyTitle}>No questionnaires available</Text>
+              <Text style={styles.emptySubtitle}>
+                Check back later for available questionnaires
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.questionnairesList}>
+              {questionnaires.map(renderQuestionnaireCard)}
+            </View>
+          )}
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -202,6 +204,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    ...(Platform.OS === 'web' && { height: '100vh' as any, overflow: 'hidden' }),
   },
   header: {
     flexDirection: 'row',
@@ -212,6 +215,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.white,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.light,
+    height: 60,
+    zIndex: 10,
+    flexShrink: 0,
   },
   backButton: {
     width: 40,
@@ -229,11 +235,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  scrollView: {
-    flex: 1,
+  scrollContainer: {
+    ...Platform.select({
+      web: { position: 'absolute', top: 60, bottom: 0, left: 0, right: 0 },
+      default: { flex: 1 },
+    }),
+  },
+  scrollContent: {
+    padding: theme.spacing.md,
   },
   questionnairesList: {
-    padding: theme.spacing.md,
   },
   questionnaireCard: {
     backgroundColor: theme.colors.white,
@@ -287,7 +298,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.tertiary,
   },
   periodsSection: {
-    marginBottom: theme.spacing.md,
+    // marginBottom: theme.spacing.md,
   },
   periodsTitle: {
     fontSize: theme.typography.sizes.sm,

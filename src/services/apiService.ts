@@ -714,6 +714,25 @@ class ApiService {
     return this.get('/chats/unread/count');
   }
 
+  // Chat check endpoints (optimized for polling)
+  async checkChatUpdates(): Promise<ApiResponse<{
+    has_updates: boolean;
+    unread_count: number;
+    timestamp: number;
+  }>> {
+    return this.get('/chats/check-updates?force_refresh=1');
+  }
+
+  async checkNewMessages(chatId: string): Promise<ApiResponse<{
+    has_new_messages: boolean;
+    last_message_id: string | null;
+    last_message_time: number | null;
+    last_message_sender: string | null;
+    timestamp: number;
+  }>> {
+    return this.get(`/chats/${chatId}/check-new-messages`);
+  }
+
   // Questionnaire endpoints
   async getQuestionnaires(): Promise<ApiResponse<any[]>> {
     return this.get('/questionnaires');

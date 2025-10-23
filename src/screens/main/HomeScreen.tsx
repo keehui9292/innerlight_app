@@ -221,10 +221,10 @@ const HomeScreen: React.FC<TabScreenProps<'Home'>> = ({ navigation }) => {
       bgColor: '#f5f3f1'
     },
     {
-      title: 'Profile Settings',
-      description: 'Manage your account',
-      icon: 'User',
-      onPress: () => navigation.navigate('Profile'),
+      title: 'Share Story',
+      description: 'Share your testimonial',
+      icon: 'Heart',
+      onPress: () => navigation.navigate('PublicTestimonials'),
       color: theme.colors.primary,
       bgColor: '#f5f3f1'
     }

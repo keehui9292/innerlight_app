@@ -1,11 +1,60 @@
 // Common type definitions for the Innerlight Community app
 
+export interface UplineEnrolerUser {
+  id: string;
+  member_id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  referral_code: string;
+  status: string;
+  [key: string]: any;
+}
+
 export interface User {
   id: string;
+  member_id?: string;
   name: string;
   email: string;
   phone?: string;
   avatar?: string;
+  email_verified_at?: string | null;
+  must_change_password?: number;
+  role?: string;
+  status?: string;
+  user_group_id?: string | null;
+  tier_id?: string | null;
+  referral_code?: string;
+  upline_id?: string | null;
+  enroler_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  team_name?: string | null;
+  metahealers_status?: string;
+  john_course_status?: string;
+  naha_intro_status?: string;
+  metahealers_expiry_date?: string | null;
+  john_course_expiry_date?: string | null;
+  naha_intro_expiry_date?: string | null;
+  merit_points?: string;
+  user_group?: {
+    name: string;
+    [key: string]: any;
+  } | null;
+  tier?: {
+    name: string;
+    [key: string]: any;
+  } | null;
+  website?: {
+    id: string;
+    name: string;
+    domain: string;
+    subdomain: string;
+    status: string;
+    [key: string]: any;
+  };
+  upline?: UplineEnrolerUser | null;
+  enroler?: UplineEnrolerUser | null;
 }
 
 export interface Appointment {
@@ -133,6 +182,7 @@ export type MainStackParamList = {
   AppointmentDetails: {
     appointment: Appointment;
   };
+  PublicTestimonials: undefined;
 };
 
 export type StackScreenProps<T extends keyof RootStackParamList> = {

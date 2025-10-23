@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import ApiService from '../services/apiService';
 
-export const useUnreadCount = (pollingInterval: number = 10000) => {
+export const useUnreadCount = (pollingInterval: number = 30000) => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -21,7 +21,7 @@ export const useUnreadCount = (pollingInterval: number = 10000) => {
   useEffect(() => {
     fetchUnreadCount();
 
-    // Poll for updates
+    // Poll for updates - increased to 30 seconds (optimized with 10s cache)
     const interval = setInterval(() => {
       fetchUnreadCount();
     }, pollingInterval);

@@ -8,22 +8,56 @@ import { TabScreenProps } from '../../types';
 import { theme } from '../../constants/theme';
 import ApiService from '../../services/apiService';
 
-interface UserProfile {
+interface UplineEnrolerUser {
   id: string;
+  member_id: string;
   name: string;
   email: string;
   phone?: string;
-  email_verified_at: string;
-  role: string;
   referral_code: string;
+  status: string;
+}
+
+interface UserProfile {
+  id: string;
+  member_id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  email_verified_at: string | null;
+  must_change_password: number;
+  role: string;
+  status: string;
+  user_group_id: string | null;
+  tier_id: string | null;
+  referral_code: string;
+  upline_id: string | null;
+  enroler_id: string | null;
   created_at: string;
+  updated_at: string;
+  team_name: string | null;
   metahealers_status: string;
   john_course_status: string;
   naha_intro_status: string;
+  metahealers_expiry_date: string | null;
+  john_course_expiry_date: string | null;
+  naha_intro_expiry_date: string | null;
+  merit_points: string;
+  user_group: {
+    name: string;
+  } | null;
+  tier: {
+    name: string;
+  } | null;
   website: {
+    id: string;
     name: string;
     domain: string;
+    subdomain: string;
+    status: string;
   };
+  upline: UplineEnrolerUser | null;
+  enroler: UplineEnrolerUser | null;
 }
 
 
@@ -73,8 +107,42 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
     }
   };
 
+  const formatFullDate = (dateString: string | null): string => {
+    if (!dateString) return 'Not set';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
   const currentUser = profileData || user;
-  
+
+  const accountInfo = [
+    {
+      label: 'Member ID',
+      value: currentUser?.member_id || 'Not available',
+      icon: 'Hash'
+    },
+    {
+      label: 'Account Status',
+      value: currentUser?.status || 'Unknown',
+      icon: 'CheckCircle',
+      isStatus: true
+    },
+    {
+      label: 'Email Verified',
+      value: currentUser?.email_verified_at ? 'Verified' : 'Not Verified',
+      icon: 'Shield',
+      isVerified: !!currentUser?.email_verified_at
+    }
+  ];
+
   const userInfo = [
     {
       label: 'Email',
@@ -90,6 +158,29 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
       label: 'Role',
       value: currentUser?.role?.charAt(0).toUpperCase() + currentUser?.role?.slice(1) || 'User',
       icon: 'User'
+    }
+  ];
+
+  const networkInfo = [
+    {
+      label: 'Merit Points',
+      value: currentUser?.merit_points || '0',
+      icon: 'Award'
+    },
+    {
+      label: 'User Group',
+      value: currentUser?.user_group?.name || 'Not assigned',
+      icon: 'Users'
+    },
+    {
+      label: 'Tier',
+      value: currentUser?.tier?.name || 'Not assigned',
+      icon: 'Star'
+    },
+    {
+      label: 'Team',
+      value: currentUser?.team_name || 'Not assigned',
+      icon: 'Flag'
     }
   ];
 
@@ -252,13 +343,69 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
             </View>
           </View>
 
+          {/* Account Status */}
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Account Status</Text>
+            <View style={styles.infoCard}>
+              {accountInfo.map((info, index) => {
+                const isActive = info.isStatus && info.value === 'Active';
+                const isVerified = info.isVerified;
+                const valueColor = info.isStatus
+                  ? (isActive ? theme.colors.success : theme.colors.warning)
+                  : info.isVerified !== undefined
+                    ? (isVerified ? theme.colors.success : theme.colors.warning)
+                    : theme.colors.text.primary;
+
+                return (
+                  <View key={index} style={[styles.infoRow, index === accountInfo.length - 1 && { borderBottomWidth: 0 }]}>
+                    <View style={styles.infoIconContainer}>
+                      <WebSafeIcon name={info.icon} size={16} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>
+                        {info.label}
+                      </Text>
+                      <Text style={[styles.infoValue, { color: valueColor }]}>
+                        {info.value}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
           {/* User Information */}
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>Personal Information</Text>
             <View style={styles.infoCard}>
               {userInfo.map((info, index) => {
                 return (
-                  <View key={index} style={styles.infoRow}>
+                  <View key={index} style={[styles.infoRow, index === userInfo.length - 1 && { borderBottomWidth: 0 }]}>
+                    <View style={styles.infoIconContainer}>
+                      <WebSafeIcon name={info.icon} size={16} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>
+                        {info.label}
+                      </Text>
+                      <Text style={styles.infoValue}>
+                        {info.value}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Network Information */}
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Network & Rewards</Text>
+            <View style={styles.infoCard}>
+              {networkInfo.map((info, index) => {
+                return (
+                  <View key={index} style={[styles.infoRow, index === networkInfo.length - 1 && { borderBottomWidth: 0 }]}>
                     <View style={styles.infoIconContainer}>
                       <WebSafeIcon name={info.icon} size={16} color={theme.colors.primary} />
                     </View>
@@ -282,51 +429,120 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
               <Text style={styles.sectionTitle}>Course Status</Text>
               <View style={styles.courseStatusCard}>
                 {currentUser?.metahealers_status && (
-                  <View style={styles.statusRow}>
-                    <Text style={styles.statusLabel}>Metahealers</Text>
-                    <View style={[styles.statusBadge, {
-                      backgroundColor: currentUser.metahealers_status === 'Active' ? '#dcfce7' : '#fef3c7'
-                    }]}>
-                      <Text style={[styles.statusText, {
-                        color: currentUser.metahealers_status === 'Active' ? '#15803d' : '#d97706'
+                  <View style={styles.courseItemContainer}>
+                    <View style={styles.statusRow}>
+                      <Text style={styles.statusLabel}>Metahealers</Text>
+                      <View style={[styles.statusBadge, {
+                        backgroundColor: currentUser.metahealers_status === 'Active' ? '#dcfce7' : '#fef3c7'
                       }]}>
-                        {currentUser.metahealers_status}
-                      </Text>
+                        <Text style={[styles.statusText, {
+                          color: currentUser.metahealers_status === 'Active' ? '#15803d' : '#d97706'
+                        }]}>
+                          {currentUser.metahealers_status}
+                        </Text>
+                      </View>
                     </View>
+                    {currentUser.metahealers_expiry_date && (
+                      <Text style={styles.expiryText}>
+                        Expires: {formatFullDate(currentUser.metahealers_expiry_date)}
+                      </Text>
+                    )}
                   </View>
                 )}
                 {currentUser?.john_course_status && (
-                  <View style={styles.statusRow}>
-                    <Text style={styles.statusLabel}>John Course</Text>
-                    <View style={[styles.statusBadge, {
-                      backgroundColor: currentUser.john_course_status === 'Active' ? '#dcfce7' : '#fef3c7'
-                    }]}>
-                      <Text style={[styles.statusText, {
-                        color: currentUser.john_course_status === 'Active' ? '#15803d' : '#d97706'
+                  <View style={styles.courseItemContainer}>
+                    <View style={styles.statusRow}>
+                      <Text style={styles.statusLabel}>John Course</Text>
+                      <View style={[styles.statusBadge, {
+                        backgroundColor: currentUser.john_course_status === 'Active' ? '#dcfce7' : '#fef3c7'
                       }]}>
-                        {currentUser.john_course_status}
-                      </Text>
+                        <Text style={[styles.statusText, {
+                          color: currentUser.john_course_status === 'Active' ? '#15803d' : '#d97706'
+                        }]}>
+                          {currentUser.john_course_status}
+                        </Text>
+                      </View>
                     </View>
+                    {currentUser.john_course_expiry_date && (
+                      <Text style={styles.expiryText}>
+                        Expires: {formatFullDate(currentUser.john_course_expiry_date)}
+                      </Text>
+                    )}
                   </View>
                 )}
                 {currentUser?.naha_intro_status && (
-                  <View style={styles.statusRow}>
-                    <Text style={styles.statusLabel}>NAHA Intro</Text>
-                    <View style={[styles.statusBadge, {
-                      backgroundColor: currentUser.naha_intro_status === 'Active' ? '#dcfce7' : '#fef3c7'
-                    }]}>
-                      <Text style={[styles.statusText, {
-                        color: currentUser.naha_intro_status === 'Active' ? '#15803d' : '#d97706'
+                  <View style={styles.courseItemContainer}>
+                    <View style={styles.statusRow}>
+                      <Text style={styles.statusLabel}>NAHA Intro</Text>
+                      <View style={[styles.statusBadge, {
+                        backgroundColor: currentUser.naha_intro_status === 'Active' ? '#dcfce7' : '#fef3c7'
                       }]}>
-                        {currentUser.naha_intro_status}
-                      </Text>
+                        <Text style={[styles.statusText, {
+                          color: currentUser.naha_intro_status === 'Active' ? '#15803d' : '#d97706'
+                        }]}>
+                          {currentUser.naha_intro_status}
+                        </Text>
+                      </View>
                     </View>
+                    {currentUser.naha_intro_expiry_date && (
+                      <Text style={styles.expiryText}>
+                        Expires: {formatFullDate(currentUser.naha_intro_expiry_date)}
+                      </Text>
+                    )}
                   </View>
                 )}
               </View>
             </View>
           )}
 
+          {/* Upline & Enroler Information */}
+          {(currentUser?.upline || currentUser?.enroler) && (
+            <View style={styles.infoSection}>
+              <Text style={styles.sectionTitle}>Network Connections</Text>
+
+              {currentUser?.upline && (
+                <View style={styles.networkCard}>
+                  <View style={styles.networkHeader}>
+                    <WebSafeIcon name="Users" size={18} color={theme.colors.primary} />
+                    <Text style={styles.networkHeaderText}>Sponsor</Text>
+                  </View>
+
+                  <View style={styles.networkInfoRow}>
+                    <View style={styles.networkAvatar}>
+                      <Text style={styles.networkAvatarText}>
+                        {currentUser.upline.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={styles.networkInfoContent}>
+                      <Text style={styles.networkName}>{currentUser.upline.name}</Text>
+                      <Text style={styles.networkDetail}>Code: {currentUser.upline.referral_code}</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {currentUser?.enroler && (
+                <View style={[styles.networkCard, { marginTop: theme.spacing.sm }]}>
+                  <View style={styles.networkHeader}>
+                    <WebSafeIcon name="UserPlus" size={18} color={theme.colors.primary} />
+                    <Text style={styles.networkHeaderText}>Enroler</Text>
+                  </View>
+
+                  <View style={styles.networkInfoRow}>
+                    <View style={styles.networkAvatar}>
+                      <Text style={styles.networkAvatarText}>
+                        {currentUser.enroler.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={styles.networkInfoContent}>
+                      <Text style={styles.networkName}>{currentUser.enroler.name}</Text>
+                      <Text style={styles.networkDetail}>Code: {currentUser.enroler.referral_code}</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
 
           {/* Settings Menu */}
           <View style={styles.settingsSection}>
@@ -566,11 +782,16 @@ const styles = StyleSheet.create({
     padding: theme.spacing.sm,
     ...theme.shadows.elegant,
   },
+  courseItemContainer: {
+    paddingVertical: theme.spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.subtle,
+  },
   statusRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
   },
   statusLabel: {
     fontSize: 11,
@@ -588,6 +809,12 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weights.medium,
     textTransform: 'capitalize',
     letterSpacing: 0,
+  },
+  expiryText: {
+    fontSize: 10,
+    color: theme.colors.text.tertiary,
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   settingsSection: {
     marginBottom: theme.spacing.sm,
@@ -699,6 +926,70 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: theme.colors.text.light,
     textAlign: 'center',
+    marginTop: theme.spacing.xs,
+  },
+  networkCard: {
+    backgroundColor: theme.colors.white,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    ...theme.shadows.elegant,
+  },
+  networkHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+    paddingBottom: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.subtle,
+  },
+  networkHeaderText: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    marginLeft: theme.spacing.sm,
+    letterSpacing: -0.2,
+  },
+  networkInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  networkAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
+  },
+  networkAvatarText: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.white,
+    letterSpacing: -0.1,
+  },
+  networkInfoContent: {
+    flex: 1,
+  },
+  networkName: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+    letterSpacing: -0.2,
+  },
+  networkDetail: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.tertiary,
+    marginBottom: 2,
+    letterSpacing: -0.1,
+  },
+  networkSameAsUpline: {
+    fontSize: theme.typography.sizes.xs,
+    color: theme.colors.text.muted,
+    fontStyle: 'italic',
     marginTop: theme.spacing.xs,
   },
 });
