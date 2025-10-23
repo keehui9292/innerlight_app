@@ -125,7 +125,7 @@ class ApiService {
             success: false,
             message: responseData.message || 'Password change required',
             must_change_password: true
-          };
+          } as any;
         }
         // If it's a validation error (422) or similar, return the structured error response
         if (response.status === 422 || responseData.errors) {
