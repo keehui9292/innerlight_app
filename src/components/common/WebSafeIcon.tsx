@@ -11,12 +11,15 @@ interface WebSafeIconProps {
 const emojiMap: Record<string, string> = {
   'Home': '🏠',
   'Calendar': '📅',
+  'CalendarDays': '🗓️',
   'User': '👤',
   'MessageSquare': '💬',
+  'MessageCircle': '💬',
   'Leaf': '🌿',
   'Star': '⭐',
   'ChevronRight': '▶',
   'CheckCircle': '✅',
+  'Check': '✓',
   'Clock': '🕐',
   'Bell': '🔔',
   'ArrowLeft': '←',
@@ -37,6 +40,7 @@ const emojiMap: Record<string, string> = {
   'CreditCard': '💳',
   'XCircle': '❌',
   'AlertCircle': '⚠️',
+  'Info': 'ℹ️',
   'Users': '👥',
   'UserPlus': '👤➕',
   'TrendingUp': '📈',
@@ -44,8 +48,7 @@ const emojiMap: Record<string, string> = {
   'Award': '🏆',
   'BookOpen': '📖',
   'Activity': '📊',
-  'GitBranch': '🌿',
-  'CheckCircle': '✅'
+  'GitBranch': '🌿'
 };
 
 const WebSafeIcon: React.FC<WebSafeIconProps> = ({ name, size, color }) => {

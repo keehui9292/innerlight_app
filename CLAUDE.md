@@ -74,3 +74,4 @@ Implemented optimized polling mechanism to reduce server load and improve app pe
 
 ## Git Status:
 All files modified but not yet committed.
+- all new screen must match this project's theme. you refer to other existing similar screen

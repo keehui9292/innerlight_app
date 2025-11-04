@@ -98,11 +98,10 @@ const DownlineChartScreen: React.FC<ScreenProps> = ({ navigation }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'chart' | 'last-persons' | 'angel-builders'>('chart');
-  const [levels, setLevels] = useState<number>(4);
 
   useEffect(() => {
     fetchAllData();
-  }, [levels]);
+  }, []);
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -122,7 +121,7 @@ const DownlineChartScreen: React.FC<ScreenProps> = ({ navigation }) => {
 
   const fetchChart = async () => {
     try {
-      const response = await ApiService.getUserChart(levels);
+      const response = await ApiService.getUserChart(4);
       if (response.success) {
         setChartData(response.data);
       }
@@ -157,7 +156,7 @@ const DownlineChartScreen: React.FC<ScreenProps> = ({ navigation }) => {
     setRefreshing(true);
     await fetchAllData();
     setRefreshing(false);
-  }, [levels]);
+  }, []);
 
   const renderChartNode = (node: ChartNode, isRoot: boolean = false) => {
     const getBadgeColor = (userGroup: string | null) => {
@@ -343,14 +342,7 @@ const DownlineChartScreen: React.FC<ScreenProps> = ({ navigation }) => {
           <WebSafeIcon name="ArrowLeft" size={24} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Downline Chart</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            onPress={() => setLevels(levels === 4 ? 6 : 4)}
-            style={styles.levelButton}
-          >
-            <Text style={styles.levelButtonText}>{levels}L</Text>
-          </TouchableOpacity>
-        </View>
+        <View style={styles.headerRight} />
       </View>
 
       {chartData && (
@@ -366,10 +358,6 @@ const DownlineChartScreen: React.FC<ScreenProps> = ({ navigation }) => {
           <View style={styles.statBox}>
             <Text style={styles.statBoxValue}>{chartData.stats.indirect_count}</Text>
             <Text style={styles.statBoxLabel}>Indirect</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statBoxValue}>{chartData.stats.max_levels}</Text>
-            <Text style={styles.statBoxLabel}>Max Levels</Text>
           </View>
         </View>
       )}
@@ -474,19 +462,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: theme.spacing.md,
   },
-  headerActions: {
-    flexDirection: 'row',
-  },
-  levelButton: {
-    backgroundColor: theme.colors.primaryGhost,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.sm,
-  },
-  levelButtonText: {
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.medium,
-    color: theme.colors.primary,
+  headerRight: {
+    width: 40,
   },
   statsBar: {
     flexDirection: 'row',

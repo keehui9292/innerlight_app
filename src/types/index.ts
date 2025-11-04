@@ -11,6 +11,13 @@ export interface UplineEnrolerUser {
   [key: string]: any;
 }
 
+export interface Address {
+  address: string | null;
+  city: string | null;
+  postcode: string | null;
+  country: string | null;
+}
+
 export interface User {
   id: string;
   member_id?: string;
@@ -53,6 +60,7 @@ export interface User {
     status: string;
     [key: string]: any;
   };
+  address?: Address | null;
   upline?: UplineEnrolerUser | null;
   enroler?: UplineEnrolerUser | null;
 }
@@ -104,6 +112,43 @@ export interface Appointment {
   time?: string;
   provider?: string;
   location?: string;
+}
+
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  event_date: string;
+  event_time?: string | null;
+  location: string;
+  max_participants?: number | null;
+  current_participants: number;
+  gallery?: string[];
+  featured_image?: string | null;
+  status: 'draft' | 'published' | 'cancelled' | 'active';
+  website_id: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  formatted_event_date?: string;
+  formatted_event_time?: string;
+  is_upcoming?: boolean;
+  is_past?: boolean;
+  available_slots?: number | null;
+  is_full?: boolean;
+  featured_image_url?: string | null;
+  gallery_urls?: string[];
+  participants?: Array<{
+    id: string;
+    name: string;
+    email: string;
+    pivot?: {
+      event_id: string;
+      user_id: string;
+      joined_at: string;
+      status: string;
+    };
+  }>;
 }
 
 export interface AuthResponse {
@@ -173,6 +218,7 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Appointments: undefined;
+  Events: undefined;
   Profile: undefined;
 };
 
@@ -181,6 +227,9 @@ export type MainStackParamList = {
   AppointmentForm: undefined;
   AppointmentDetails: {
     appointment: Appointment;
+  };
+  EventDetails: {
+    eventId: string;
   };
   PublicTestimonials: undefined;
 };

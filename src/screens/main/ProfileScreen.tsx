@@ -18,6 +18,13 @@ interface UplineEnrolerUser {
   status: string;
 }
 
+interface Address {
+  address: string | null;
+  city: string | null;
+  postcode: string | null;
+  country: string | null;
+}
+
 interface UserProfile {
   id: string;
   member_id: string;
@@ -56,6 +63,7 @@ interface UserProfile {
     subdomain: string;
     status: string;
   };
+  address: Address | null;
   upline: UplineEnrolerUser | null;
   enroler: UplineEnrolerUser | null;
 }
@@ -398,6 +406,59 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
               })}
             </View>
           </View>
+
+          {/* Address Information */}
+          {currentUser?.address && (
+            <View style={styles.infoSection}>
+              <Text style={styles.sectionTitle}>Address</Text>
+              <View style={styles.infoCard}>
+                {currentUser.address.address && (
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconContainer}>
+                      <WebSafeIcon name="Home" size={16} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>Street Address</Text>
+                      <Text style={styles.infoValue}>{currentUser.address.address}</Text>
+                    </View>
+                  </View>
+                )}
+                {currentUser.address.city && (
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconContainer}>
+                      <WebSafeIcon name="MapPin" size={16} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>City</Text>
+                      <Text style={styles.infoValue}>{currentUser.address.city}</Text>
+                    </View>
+                  </View>
+                )}
+                {currentUser.address.postcode && (
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconContainer}>
+                      <WebSafeIcon name="MapPin" size={16} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>Postcode</Text>
+                      <Text style={styles.infoValue}>{currentUser.address.postcode}</Text>
+                    </View>
+                  </View>
+                )}
+                {currentUser.address.country && (
+                  <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+                    <View style={styles.infoIconContainer}>
+                      <WebSafeIcon name="Globe" size={16} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>Country</Text>
+                      <Text style={styles.infoValue}>{currentUser.address.country}</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
 
           {/* Network Information */}
           <View style={styles.infoSection}>

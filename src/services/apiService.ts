@@ -415,6 +415,10 @@ class ApiService {
     return this.get<any[]>('/user/events');
   }
 
+  async getUserEvent(eventId: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/user/events/${eventId}`);
+  }
+
   async joinEvent(eventId: string): Promise<ApiResponse<null>> {
     return this.post<null>(`/events/${eventId}/join`);
   }

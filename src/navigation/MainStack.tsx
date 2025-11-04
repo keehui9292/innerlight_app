@@ -5,6 +5,8 @@ import HomeScreen from '../screens/main/HomeScreen';
 import AppointmentScreen from '../screens/main/AppointmentScreen';
 import AppointmentFormScreen from '../screens/main/AppointmentFormScreen';
 import AppointmentDetailsScreen from '../screens/main/AppointmentDetailsScreen';
+import EventListScreen from '../screens/main/EventListScreen';
+import EventDetailScreen from '../screens/main/EventDetailScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import PaymentHistoryScreen from '../screens/main/PaymentHistoryScreen';
 import TestimonialScreen from '../screens/main/TestimonialScreen';
@@ -61,6 +63,8 @@ const TabNavigator = () => {
             iconName = 'Home';
           } else if (route.name === 'Appointments') {
             iconName = 'Calendar';
+          } else if (route.name === 'Events') {
+            iconName = 'CalendarDays';
           } else if (route.name === 'Chats') {
             iconName = 'MessageCircle';
           } else if (route.name === 'Forum') {
@@ -78,20 +82,28 @@ const TabNavigator = () => {
       })}
       initialRouteName="Home"
     >
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
           title: 'Home | Innerlight'
         }}
       />
-      <Tab.Screen 
-        name="Appointments" 
+      <Tab.Screen
+        name="Appointments"
         component={AppointmentScreen}
         options={{
           tabBarLabel: 'Appointments',
           title: 'Appointments | Innerlight'
+        }}
+      />
+      <Tab.Screen
+        name="Events"
+        component={EventListScreen}
+        options={{
+          tabBarLabel: 'Events',
+          title: 'Events | Innerlight'
         }}
       />
       <Tab.Screen
@@ -143,6 +155,7 @@ const MainStack = () => {
       <Stack.Screen name="MainTabs" component={TabNavigator} options={{ title: 'Innerlight' }}/>
       <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} options={{ title: 'Appointment Form | Innerlight' }}/>
       <Stack.Screen name="AppointmentDetails" component={AppointmentDetailsScreen} options={{ title: 'Appointment Details | Innerlight' }}/>
+      <Stack.Screen name="EventDetails" component={EventDetailScreen} options={{ title: 'Event Details | Innerlight' }}/>
       <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ title: 'Payment History | Innerlight' }}/>
       <Stack.Screen name="Testimonial" component={TestimonialScreen} options={{ title: 'Testimonial | Innerlight' }}/>
       <Stack.Screen name="DetoxificationTestimonial" component={DetoxificationTestimonialScreen} options={{ title: 'Detoxification Testimonial | Innerlight' }}/>
