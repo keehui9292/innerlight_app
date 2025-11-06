@@ -232,6 +232,7 @@ export type MainStackParamList = {
     eventId: string;
   };
   PublicTestimonials: undefined;
+  AngelBuilderDashboard: undefined;
 };
 
 export type StackScreenProps<T extends keyof RootStackParamList> = {

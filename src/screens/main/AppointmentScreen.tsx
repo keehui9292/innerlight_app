@@ -133,12 +133,14 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({
   const getStatusColor = (status: string): StatusColors => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
+      case 'paid':
         return {
           bg: theme.colors.primaryGhost,
           text: theme.colors.success,
           dot: theme.colors.success,
         };
       case 'pending':
+      case 'pending payment':
         return {
           bg: theme.colors.primarySoft,
           text: theme.colors.primary,
@@ -164,7 +166,9 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({
   };
 
   const renderAppointmentCard = (appointment: Appointment) => {
-    const statusColors = getStatusColor(appointment.status);
+    // Use payment_status for display instead of status
+    const displayStatus = appointment.payment_status || appointment.status;
+    const statusColors = getStatusColor(displayStatus);
 
     return (
       <TouchableOpacity
@@ -202,7 +206,7 @@ const AppointmentScreen: React.FC<TabScreenProps<'Appointments'>> = ({
               style={[styles.statusDot, { backgroundColor: statusColors.dot }]}
             />
             <Text style={[styles.statusText, { color: statusColors.text }]}>
-              {appointment.status}
+              {displayStatus}
             </Text>
           </View>
         </View>

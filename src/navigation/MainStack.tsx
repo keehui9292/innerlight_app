@@ -27,6 +27,7 @@ import QuestionnaireListScreen from '../screens/main/QuestionnaireListScreen';
 import QuestionnaireDetailScreen from '../screens/main/QuestionnaireDetailScreen';
 import QuestionnaireResultScreen from '../screens/main/QuestionnaireResultScreen';
 import QuestionnaireHistoryScreen from '../screens/main/QuestionnaireHistoryScreen';
+import AngelBuilderDashboardScreen from '../screens/main/AngelBuilderDashboardScreen';
 import { theme } from '../constants/theme';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 
@@ -173,6 +174,7 @@ const MainStack = () => {
       <Stack.Screen name="QuestionnaireResult" component={QuestionnaireResultScreen} options={{ title: 'Results | Innerlight' }}/>
       <Stack.Screen name="QuestionnaireHistory" component={QuestionnaireHistoryScreen} options={{ title: 'History | Innerlight' }}/>
       <Stack.Screen name="PublicTestimonials" component={PublicTestimonialsScreen} options={{ title: 'Share Your Story | Innerlight' }}/>
+      <Stack.Screen name="AngelBuilderDashboard" component={AngelBuilderDashboardScreen} options={{ title: 'Angel Builder Dashboard | Innerlight' }}/>
     </Stack.Navigator>
   );
 };

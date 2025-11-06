@@ -6,6 +6,7 @@ import {
   Alert,
   StyleSheet,
   Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../../components/common/Button';
@@ -114,8 +115,10 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
+      case 'paid':
         return { bg: theme.colors.primaryGhost, text: theme.colors.success, dot: theme.colors.success };
       case 'pending':
+      case 'pending payment':
         return { bg: theme.colors.primarySoft, text: theme.colors.primary, dot: theme.colors.primary };
       case 'cancelled':
         return { bg: '#fef2f0', text: theme.colors.error, dot: theme.colors.error };
@@ -286,6 +289,25 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
     });
   };
 
+  const handleContinuePayment = async () => {
+    if (!appointment.payment_url) {
+      Alert.alert('Error', 'Payment URL is not available');
+      return;
+    }
+
+    try {
+      const canOpen = await Linking.canOpenURL(appointment.payment_url);
+      if (canOpen) {
+        await Linking.openURL(appointment.payment_url);
+      } else {
+        Alert.alert('Error', 'Cannot open payment URL');
+      }
+    } catch (error) {
+      console.error('Error opening payment URL:', error);
+      Alert.alert('Error', 'Failed to open payment page');
+    }
+  };
+
   const renderFormDataItem = (key: string, value: any) => {
     if (!value || value === null) return null;
 
@@ -338,10 +360,13 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
     );
   };
 
-  const statusColors = getStatusColor(appointment.status);
+  // Use payment_status for display instead of status
+  const displayStatus = appointment.payment_status || appointment.status;
+  const statusColors = getStatusColor(displayStatus);
   const appointmentDate = appointment.form_data?.appointment_date || appointment.date;
   const appointmentTime = appointment.form_data?.appointment_time || appointment.time;
   const hasDateAndTime = appointmentDate && appointmentTime;
+  const isPendingPayment = appointment.payment_status?.toLowerCase() === 'pending';
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -360,15 +385,15 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
           {/* Status Badge - Top Right */}
           <View style={styles.statusContainer}>
             <View style={[
-              styles.statusBadge, 
-              { 
+              styles.statusBadge,
+              {
                 backgroundColor: statusColors.bg,
                 borderColor: statusColors.text + '20'
               }
             ]}>
               <View style={[styles.statusDot, { backgroundColor: statusColors.dot }]} />
               <Text style={[styles.statusText, { color: statusColors.text }]}>
-                {appointment.status}
+                {displayStatus}
               </Text>
             </View>
           </View>
@@ -433,6 +458,26 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({ nav
             </View>
           </View>
         </View>
+
+        {/* Payment Button - Show if payment is pending */}
+        {isPendingPayment && appointment.payment_url && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Payment</Text>
+            <CustomButton
+              onPress={handleContinuePayment}
+              colorScheme="primary"
+              fullWidth
+            >
+              <View style={styles.buttonContent}>
+                <WebSafeIcon name="CreditCard" size={16} color={theme.colors.white} />
+                <Text style={styles.paymentButtonText}>Continue Payment</Text>
+              </View>
+            </CustomButton>
+            <Text style={styles.paymentHintText}>
+              Complete your payment to confirm the appointment
+            </Text>
+          </View>
+        )}
 
         {/* Calendar Reminder Button */}
         {hasDateAndTime && (
@@ -665,6 +710,18 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.medium,
     color: theme.colors.primary,
+  },
+  paymentButtonText: {
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.white,
+  },
+  paymentHintText: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.tertiary,
+    textAlign: 'center',
+    marginTop: theme.spacing.md,
+    lineHeight: 18,
   },
   mouDisabledText: {
     fontSize: theme.typography.sizes.sm,

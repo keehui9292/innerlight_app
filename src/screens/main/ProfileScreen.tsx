@@ -192,6 +192,9 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
     }
   ];
 
+  // Check if user is Angel Builder
+  const isAngelBuilder = currentUser?.user_group?.name === 'Angel Builder';
+
   const menuItems = [
     {
       title: 'Downline Chart',
@@ -350,6 +353,35 @@ const ProfileScreen: React.FC<TabScreenProps<'Profile'>> = ({ navigation }) => {
               )}
             </View>
           </View>
+
+          {/* Angel Builder Dashboard - Only for Angel Builder users */}
+          {isAngelBuilder && (
+            <View style={styles.angelBuilderSection}>
+              <Text style={styles.sectionTitle}>Angel Builder</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('AngelBuilderDashboard')}
+                style={styles.angelBuilderCard}
+                activeOpacity={0.8}
+              >
+                <View style={styles.angelBuilderContent}>
+                  <View style={styles.angelBuilderIconContainer}>
+                    <WebSafeIcon name="TrendingUp" size={24} color={theme.colors.primary} />
+                  </View>
+
+                  <View style={styles.angelBuilderTextContent}>
+                    <Text style={styles.angelBuilderTitle}>
+                      Angel Builder Dashboard
+                    </Text>
+                    <Text style={styles.angelBuilderDescription}>
+                      View your network insights and performance metrics
+                    </Text>
+                  </View>
+
+                  <WebSafeIcon name="ChevronRight" size={20} color={theme.colors.text.tertiary} />
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Account Status */}
           <View style={styles.infoSection}>
@@ -1052,6 +1084,45 @@ const styles = StyleSheet.create({
     color: theme.colors.text.muted,
     fontStyle: 'italic',
     marginTop: theme.spacing.xs,
+  },
+  angelBuilderSection: {
+    marginBottom: theme.spacing.md,
+  },
+  angelBuilderCard: {
+    backgroundColor: theme.colors.white,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    ...theme.shadows.elegant,
+  },
+  angelBuilderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  angelBuilderIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primaryGhost,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
+  },
+  angelBuilderTextContent: {
+    flex: 1,
+  },
+  angelBuilderTitle: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+    letterSpacing: -0.2,
+  },
+  angelBuilderDescription: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.text.tertiary,
+    lineHeight: 18,
   },
 });
 
