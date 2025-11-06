@@ -84,6 +84,12 @@ export interface Appointment {
   };
   total_price: string;
   status: 'confirmed' | 'pending' | 'cancelled';
+  payment_status?: 'pending' | 'paid' | 'failed';
+  payment_session_id?: string | null;
+  payment_intent_id?: string | null;
+  payment_url?: string | null;
+  payment_required?: boolean;
+  paid_at?: string | null;
   created_at: string;
   updated_at: string;
   mou_link?: string | null;
@@ -224,6 +230,10 @@ export type MainTabParamList = {
 
 export type MainStackParamList = {
   MainTabs: undefined;
+  PaymentVerification: {
+    session_id?: string;
+    appointment_id?: string;
+  };
   AppointmentForm: undefined;
   AppointmentDetails: {
     appointment: Appointment;

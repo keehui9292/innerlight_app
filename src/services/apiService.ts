@@ -373,6 +373,17 @@ class ApiService {
     return this.get(`/payment-status/${appointmentId}`);
   }
 
+  async verifyPayment(sessionId: string, appointmentId: string): Promise<ApiResponse<{
+    is_paid: boolean;
+    payment_status: string;
+    appointment_status: string;
+  }>> {
+    return this.post('/appointments/verify-payment', {
+      session_id: sessionId,
+      appointment_id: appointmentId
+    });
+  }
+
   async getPaymentHistory(): Promise<ApiResponse<{
     payment_history: Array<{
       appointment_id: string;

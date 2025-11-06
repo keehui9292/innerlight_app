@@ -28,6 +28,7 @@ import QuestionnaireDetailScreen from '../screens/main/QuestionnaireDetailScreen
 import QuestionnaireResultScreen from '../screens/main/QuestionnaireResultScreen';
 import QuestionnaireHistoryScreen from '../screens/main/QuestionnaireHistoryScreen';
 import AngelBuilderDashboardScreen from '../screens/main/AngelBuilderDashboardScreen';
+import PaymentVerificationScreen from '../screens/main/PaymentVerificationScreen';
 import { theme } from '../constants/theme';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 
@@ -154,6 +155,7 @@ const MainStack = () => {
       }}
     >
       <Stack.Screen name="MainTabs" component={TabNavigator} options={{ title: 'Innerlight' }}/>
+      <Stack.Screen name="PaymentVerification" component={PaymentVerificationScreen} options={{ title: 'Payment Verification | Innerlight' }}/>
       <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} options={{ title: 'Appointment Form | Innerlight' }}/>
       <Stack.Screen name="AppointmentDetails" component={AppointmentDetailsScreen} options={{ title: 'Appointment Details | Innerlight' }}/>
       <Stack.Screen name="EventDetails" component={EventDetailScreen} options={{ title: 'Event Details | Innerlight' }}/>
