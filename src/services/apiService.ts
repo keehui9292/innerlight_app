@@ -779,6 +779,69 @@ class ApiService {
   async getQuestionnaireResponse(responseId: string): Promise<ApiResponse<any>> {
     return this.get(`/questionnaires/responses/${responseId}`);
   }
+
+  // Attachment endpoints
+  async uploadAttachment(chatId: string, file: any, messageId: string): Promise<ApiResponse<{
+    attachment_id: number;
+    message_id: string;
+    type: 'photo' | 'video' | 'document' | 'file';
+    filename: string;
+    size: number;
+    url: string;
+    created_at: string;
+  }>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('message_id', messageId);
+
+    return this.requestFormData(`/chats/${chatId}/attachments`, formData);
+  }
+
+  async uploadAttachments(chatId: string, files: File[], messageId: string): Promise<ApiResponse<{
+    uploaded: Array<{
+      attachment_id: number;
+      message_id: string;
+      type: 'photo' | 'video' | 'document' | 'file';
+      filename: string;
+      size: number;
+      url: string;
+      created_at: string;
+    }>;
+    count: number;
+    failed: Array<{
+      filename: string;
+      error: string;
+    }>;
+    failed_count: number;
+  }>> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files[]', file);
+    });
+    formData.append('message_id', messageId);
+
+    return this.requestFormData(`/chats/${chatId}/attachments`, formData);
+  }
+
+  async getAttachments(chatId: string, messageId: string): Promise<ApiResponse<{
+    message_id: string;
+    attachments: Array<{
+      attachment_id: number;
+      message_id: string;
+      type: 'photo' | 'video' | 'document' | 'file';
+      filename: string;
+      size: number;
+      url: string;
+      uploaded_by: {
+        id: string;
+        name: string;
+      };
+      created_at: string;
+    }>;
+    count: number;
+  }>> {
+    return this.get(`/chats/${chatId}/messages/${messageId}/attachments`);
+  }
 }
 
 export default new ApiService();
