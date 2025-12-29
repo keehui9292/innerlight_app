@@ -2,7 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../context/AuthContext';
 import AuthStack from './AuthStack';
-import MainStack from './MainStack';
+import ServicesStack from './ServicesStack';
 import LoadingScreen from '../components/common/LoadingScreen';
 import { theme } from '../constants/theme';
 
@@ -23,9 +23,9 @@ const AppNavigator: React.FC = () => {
       }}
     >
       {isAuthenticated ? (
-        <Stack.Screen 
-          name="Main" 
-          component={MainStack}
+        <Stack.Screen
+          name="Main"
+          component={ServicesStack}
           options={{
             animationTypeForReplace: 'push',
           }}

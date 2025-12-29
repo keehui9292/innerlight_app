@@ -218,7 +218,12 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   RequestOTP: { email: string };
   VerifyOTP: { email: string };
-  MainTabs: undefined;
+  Services: undefined;
+};
+
+export type ServicesStackParamList = {
+  ServicesHome: undefined;
+  MainStack: undefined;
 };
 
 export type MainTabParamList = {
